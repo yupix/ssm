@@ -1,0 +1,5 @@
+discord.py
+discord.py[voice]
+mysql-connector-python
+Halo
+configparser
