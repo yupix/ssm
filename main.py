@@ -54,6 +54,7 @@ async def db_search(table_name, table_column, where_condition):
     myresult = mycursor.fetchall()
     return myresult
 
+
 async def db_reformat(myresult, type):
     for x in myresult:
         reformat = "".join(map(str, x))
@@ -65,6 +66,7 @@ async def db_reformat(myresult, type):
         return int(reformat)
     elif type == 3:
         return float(reformat)
+
 
 async def db_delete(table_column, where_condition, adr):
     sql = f'DELETE FROM {table_column} WHERE {where_condition}'

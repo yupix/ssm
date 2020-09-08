@@ -34,8 +34,9 @@ class BlogCog(commands.Cog):
 
     @blogcategory.command()
     async def unregister(self, ctx):
-        myresult = await db_search('category_id', 'discord_blog_main_info', f'category_id = {ctx.channel.category.id}')
-        if len(myresult) == 0:
+        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+                                                f'category_id = {ctx.channel.category.id}')
+        if len(db_search_category_id) == 0:
             sql = "INSERT INTO discord_blog_main_info (server_id, category_id) VALUES (%s, %s)"
             val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
             mycursor.execute(sql, val)
@@ -52,10 +53,12 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='register')
     async def _register(self, ctx):
-        myresult = await db_search('category_id', 'discord_blog_main_info', f'category_id = {ctx.channel.category.id}')
-        if len(myresult) == 1:
-            myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
-            if len(myresult) == 0:
+        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+                                                f'category_id = {ctx.channel.category.id}')
+        if len(db_search_category_id) == 1:
+            db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info',
+                                                   f'channel_id = {ctx.channel.id}')
+            if len(db_search_channel_id) == 0:
                 sql = "INSERT INTO discord_blog_sub_info (channel_id, user_id, embed_color, number_of_posts) VALUES (%s, %s, %s, %s)"
                 embed_color_list = [5620992, 16088855, 16056193, 9795021]
                 print(random.choice(embed_color_list))
@@ -78,21 +81,18 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='unregister')
     async def _unregister(self, ctx):
-        myresult = await db_search('category_id', 'discord_main_blog', f'category_id = {ctx.channel.category.id}')
-        if len(myresult) == 0:
-            sql = "INSERT INTO discord_main_blog (server_id, category_id) VALUES (%s, %s)"
-            val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
-            mycursor.execute(sql, val)
-            mydb.commit()
-            await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないカテゴリです')
+        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        if len(db_search_channel_id) == 1:
+            await db_delete('discord_blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
+            await db_delete('discord_blog_xp', 'channel_id = %s', f'{ctx.channel.id}')
+            await embed_send(ctx, self.bot, 0, '成功', f'ブログの登録を解除しました\n{ctx.author.name}さん今までのご利用ありがとうございました!')
         else:
-            await db_delete('discord_main_blog', 'category_id = %s', f'{ctx.channel.category.id}')
-            await embed_send(ctx, self.bot, 0, '成功', 'カテゴリの解除に成功しました!')
+            await embed_send(ctx, self.bot, 1, 'エラー', 'ブログの登録がされていないチャンネルです')
 
     @blog.command(name='status')
     async def _status(self, ctx):
-        myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
-        if len(myresult) == 1:
+        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        if len(db_search_channel_id) == 1:
             db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
                                              f'channel_id = {ctx.channel.id} AND user_id IS NOT NULL')
             reformat_user_id = await db_reformat(db_get_user_id, 1)
