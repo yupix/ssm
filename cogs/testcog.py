@@ -28,13 +28,6 @@ class TestCog(commands.Cog):
     async def remove(self, ctx, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        if message.content == 'こんにちは':
-            await message.channel.send(f'{message.author.name}さんこんにちは！')
-
 
 def setup(bot):
     bot.add_cog(TestCog(bot))

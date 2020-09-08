@@ -3,17 +3,31 @@ import os
 import discord
 import mysql.connector
 import traceback
+import configparser
 
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from halo import Halo
 
+config_ini = configparser.ConfigParser()
+config_ini.read('config.ini', encoding='utf-8')
+
+bot_user = config_ini['DEFAULT']['User']
+bot_prefix = config_ini['DEFAULT']['Prefix']
+bot_token = config_ini['DEFAULT']['Token']
+
+db_user = config_ini['DATABASE']['User']
+db_port = config_ini['DATABASE']['Port']
+db_host = config_ini['DATABASE']['Host']
+db_password = config_ini['DATABASE']['Password']
+db_database = config_ini['DATABASE']['Database']
+
 mydb = mysql.connector.connect(
-    host="localhost",
-    port='3306',
-    user="root",
-    password="ePbk3xY33zqPDPWZUstD8eKP",
-    database="discord_bot"
+    host=f'{db_host}',
+    port=f'{db_port}',
+    user=f'{db_user}',
+    password=f'{db_password}',
+    database=f'{db_database}'
 )
 
 mycursor = mydb.cursor()
@@ -36,46 +50,66 @@ async def embed_send(ctx, bot, type, title, subtitle):
 
 async def db_search(table_name, table_column, where_condition):
     mycursor.execute(
-        f"SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1")
+        f'SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1')
     myresult = mycursor.fetchall()
     return myresult
 
+async def db_reformat(myresult, type):
+    for x in myresult:
+        reformat = "".join(map(str, x))
+    if type == 0:
+        return myresult
+    elif type == 1:
+        return str(reformat)
+    elif type == 2:
+        return int(reformat)
+    elif type == 3:
+        return float(reformat)
 
 async def db_delete(table_column, where_condition, adr):
-    sql = f"DELETE FROM {table_column} WHERE {where_condition}"
+    sql = f'DELETE FROM {table_column} WHERE {where_condition}'
     adr = (adr,)
     print(adr)
     mycursor.execute(sql, adr)
 
     mydb.commit()
 
-async def db_insert(table_column):
-    sql = "INSERT INTO {table_column} (server_id, category_id) VALUES (%s, %s)"
-    val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
-    mycursor.execute(sql, val)
-    mydb.commit()
 
 def check_database():  # 起動時に一度実行jsonがあるか確認ないなら作成する関数
     if os.path.exists('./tmp/dummy'):
         print('\r' + f'[main/INFO] tmpのチェック に成功')
-        mycursor.execute("USE discord_bot")
+        mycursor.execute('USE discord_bot')
     else:
         mycursor.execute('DROP DATABASE discord_bot')
         mycursor.execute('CREATE DATABASE discord_bot')
         mycursor.execute('USE discord_bot')
         # discord_main_blog を作る
         mycursor.execute(
-            "CREATE TABLE discord_main_blog (server_id VARCHAR(255), category_id VARCHAR(255), blog_reply_channel VARCHAR(255), blog_reply_webhook_url VARCHAR(255))")
-        # discord_sub_blog を作る
+            'CREATE TABLE discord_blog_main_info (server_id VARCHAR(255), category_id VARCHAR(255), '
+            'blog_reply_channel VARCHAR(255), blog_reply_webhook_url VARCHAR(255))')
+
+        # discord_blog_sub_info を作る
         mycursor.execute(
-            "CREATE TABLE discord_sub_blog (server_id VARCHAR(255), category_id VARCHAR(255), user_id VARCHAR(255), channel_id VARCHAR(255), embed_color VARCHAR(255), number_of_posts VARCHAR(255), xp VARCHAR(255), level VARCHAR(255), saved_levelup_xp VARCHAR(255), last_logind VARCHAR(255), number_logins VARCHAR(255), total_login VARCHAR(255))")
+            'CREATE TABLE discord_blog_sub_info (channel_id VARCHAR(255), user_id VARCHAR(255),  embed_color VARCHAR('
+            '255), number_of_posts VARCHAR(255))')
+
+        # discord_blog_xp を作る
+        mycursor.execute(
+            'CREATE TABLE discord_blog_xp (channel_id VARCHAR(255), xp VARCHAR(255), '
+            'level VARCHAR(255), saved_levelup_xp VARCHAR(255))')
+
+        # discord_blog_user_info を作る
+        mycursor.execute(
+            'CREATE TABLE discord_blog_user_info (channel_id VARCHAR(255), last_logind VARCHAR(255), number_logins '
+            'VARCHAR(255), total_login VARCHAR(255))')
 
         # discord_main_block_list を作る
         mycursor.execute(
-            "CREATE TABLE discord_main_block_list (server_id VARCHAR(255), cooperation VARCHAR(255))")
+            'CREATE TABLE discord_main_block_list (server_id VARCHAR(255), cooperation VARCHAR(255))')
+
         # discord_sub_block_list を作る
         mycursor.execute(
-            "CREATE TABLE discord_sub_block_list (server_id VARCHAR(255), user_id VARCHAR(255), count VARCHAR(255))")
+            'CREATE TABLE discord_sub_block_list (server_id VARCHAR(255), user_id VARCHAR(255), count VARCHAR(255))')
 
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
@@ -109,15 +143,15 @@ class ssm(commands.Bot):
             await ctx.send('存在しないコマンドです')
             return
         else:
-            embed = discord.Embed(title="エラーレポート", description="", color=0xd32f2f)
-            embed.add_field(name="エラー発生サーバー名", value=ctx.guild.name, inline=True)
-            embed.add_field(name="エラー発生サーバーID", value=ctx.guild.id, inline=True)
-            embed.add_field(name="エラー発生ユーザー名", value=ctx.author.name, inline=False)
-            embed.add_field(name="エラー発生ユーザーID", value=ctx.author.id, inline=False)
-            embed.add_field(name="エラー発生コマンド", value=ctx.message.content, inline=True)
-            embed.add_field(name="エラー内容", value=error, inline=True)
+            embed = discord.Embed(title='エラーレポート', description='', color=0xd32f2f)
+            embed.add_field(name='エラー発生サーバー名', value=ctx.guild.name, inline=True)
+            embed.add_field(name='エラー発生サーバーID', value=ctx.guild.id, inline=True)
+            embed.add_field(name='エラー発生ユーザー名', value=ctx.author.name, inline=False)
+            embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=False)
+            embed.add_field(name='エラー発生コマンド', value=ctx.message.content, inline=True)
+            embed.add_field(name='エラー内容', value=error, inline=True)
             m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
-            await ctx.send(f"申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}")
+            await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
 
 
 if __name__ == '__main__':
@@ -128,5 +162,5 @@ if __name__ == '__main__':
                    })
     spinner.start()
 
-    bot = ssm(command_prefix='tu!')
-    bot.run('NDI0NzU4ODY2MTY1ODkxMDcy.Wq3RhQ.TphzIEdVnc-NisuDdQAO6uP7xEo')
+    bot = ssm(command_prefix=f'{bot_prefix}')
+    bot.run(f'{bot_token}')
