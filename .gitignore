@@ -11,6 +11,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+config.ini
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -548,6 +549,7 @@ pip-selfcheck.json
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff
+.idea/dbnavigator.xml
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/**/usage.statistics.xml
