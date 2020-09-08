@@ -135,7 +135,7 @@ class ssm(commands.Bot):
         print('--------------------------------')
 
     async def on_message(self, ctx):
-        print(f'[[ 発言 ]] {ctx.guild.name} => {ctx.author.name}: {ctx.content}')
+        print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
         await bot.process_commands(ctx)
 
     async def on_command_error(self, ctx, error):
@@ -144,10 +144,8 @@ class ssm(commands.Bot):
             return
         else:
             embed = discord.Embed(title='エラーレポート', description='', color=0xd32f2f)
-            embed.add_field(name='エラー発生サーバー名', value=ctx.guild.name, inline=True)
             embed.add_field(name='エラー発生サーバーID', value=ctx.guild.id, inline=True)
-            embed.add_field(name='エラー発生ユーザー名', value=ctx.author.name, inline=False)
-            embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=False)
+            embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=True)
             embed.add_field(name='エラー発生コマンド', value=ctx.message.content, inline=True)
             embed.add_field(name='エラー内容', value=error, inline=True)
             m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
