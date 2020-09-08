@@ -7,7 +7,7 @@ from discord.ext import commands
 import urllib.request
 import requests
 
-from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update
+from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
 
 
 class BlogCog(commands.Cog):
@@ -63,7 +63,7 @@ class BlogCog(commands.Cog):
                 embed_color_list = [5620992, 16088855, 16056193, 9795021]
                 print(random.choice(embed_color_list))
                 val = (
-                    f'{ctx.channel.id}', f'{ctx.author.id}', random.choice(embed_color_list), 1)
+                    f'{ctx.channel.id}', f'{ctx.author.id}', random.choice(embed_color_list), 0)
                 mycursor.execute(sql, val)
                 mydb.commit()
 
@@ -72,7 +72,6 @@ class BlogCog(commands.Cog):
                     f'{ctx.channel.id}', 0, 1)
                 mycursor.execute(sql, val)
                 mydb.commit()
-
                 await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているチャンネルです')
