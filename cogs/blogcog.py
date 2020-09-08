@@ -83,9 +83,14 @@ class BlogCog(commands.Cog):
     async def _unregister(self, ctx):
         db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
         if len(db_search_channel_id) == 1:
-            await db_delete('discord_blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
-            await db_delete('discord_blog_xp', 'channel_id = %s', f'{ctx.channel.id}')
-            await embed_send(ctx, self.bot, 0, '成功', f'ブログの登録を解除しました\n{ctx.author.name}さん今までのご利用ありがとうございました!')
+            db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
+                                             f'channel_id = {ctx.channel.id} AND user_id = {ctx.author.id}')
+            if len(db_get_user_id) == 1:
+                await db_delete('discord_blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
+                await db_delete('discord_blog_xp', 'channel_id = %s', f'{ctx.channel.id}')
+                await embed_send(ctx, self.bot, 0, '成功', f'ブログの登録を解除しました\n{ctx.author.name}さん今までのご利用ありがとうございました!')
+            else:
+                await embed_send(ctx, self.bot, 1, 'エラー', f'所有または参加していないブログは削除できません!')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', 'ブログの登録がされていないチャンネルです')
 
