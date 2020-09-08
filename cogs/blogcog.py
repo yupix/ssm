@@ -7,7 +7,7 @@ from discord.ext import commands
 import urllib.request
 import requests
 
-from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix
+from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update
 
 
 class BlogCog(commands.Cog):
@@ -181,7 +181,6 @@ class BlogCog(commands.Cog):
         if ctx.author.bot:
             return
         if ctx.content != f'{bot_prefix}blog status':
-            # reformat_channel_id = await db_reformat(myresult)
             myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
             print('aaaa')
             if len(myresult) >= 1:
@@ -222,10 +221,8 @@ class BlogCog(commands.Cog):
                 next_levelup_xp = next_levelup_xp[:next_levelup_xp.find('.')]
                 print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{rereformat_xp}')
                 if int(rereformat_xp) >= int(next_levelup_xp):
-                    sql = "UPDATE discord_blog_xp SET saved_levelup_xp = %s WHERE channel_id = %s"
                     val = (f"{next_levelup_xp}", f"{ctx.channel.id}")
-                    mycursor.execute(sql, val)
-                    mydb.commit()
+                    await db_update('discord_blog_xp', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
 
                     reformat_level = int(reformat_level) + 1
                     embed = discord.Embed(
@@ -238,17 +235,13 @@ class BlogCog(commands.Cog):
                     next_xp = int(reformat_xp) + + int(2) * 10
                     print(f'今回の発言後のxp(小数) {next_xp / 100}\n今回の発言後のxp(整数) {next_xp}')
                 next_number_of_posts = int(reformat_number_of_posts) + 1
-                sql = "UPDATE discord_blog_xp SET xp = %s, level = %s WHERE channel_id = %s"
+
                 val = (f"{int(next_xp)}", f"{reformat_level}", f"{ctx.channel.id}")
-                mycursor.execute(sql, val)
-                mydb.commit()
+                await db_update('discord_blog_xp', 'xp = %s, level = %s WHERE channel_id = %s', val)
 
-                sql = "UPDATE discord_blog_sub_info SET number_of_posts = %s WHERE channel_id = %s"
                 val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
-                mycursor.execute(sql, val)
-                mydb.commit()
+                await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
 
-                return 0
 
 
 def setup(bot):

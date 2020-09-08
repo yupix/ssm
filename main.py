@@ -48,6 +48,12 @@ async def embed_send(ctx, bot, type, title, subtitle):
     m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
 
 
+async def db_update(table_name, table_column, val):
+    sql = f'UPDATE {table_name} SET {table_column}'
+    mycursor.execute(sql, val)
+    mydb.commit()
+
+
 async def db_search(table_name, table_column, where_condition):
     mycursor.execute(
         f'SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1')
