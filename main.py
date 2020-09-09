@@ -22,6 +22,7 @@ db_host = config_ini['DATABASE']['Host']
 db_password = config_ini['DATABASE']['Password']
 db_database = config_ini['DATABASE']['Database']
 
+custom_blogrole = config_ini['CUSTOM']['Blogrole']
 mydb = mysql.connector.connect(
     host=f'{db_host}',
     port=f'{db_port}',
@@ -34,7 +35,9 @@ mycursor = mydb.cursor()
 
 INITIAL_EXTENSIONS = [
     'cogs.testcog',
-    'cogs.blogcog'
+    'cogs.blogcog',
+    'cogs.basiccog',
+    'cogs.blocklistcog'
 ]
 
 
@@ -46,7 +49,7 @@ async def embed_send(ctx, bot, type, title, subtitle):
     print(f'{type}, {title}, {subtitle}')
     embed = discord.Embed(title=f'{title}', description=f'{subtitle}', color=embed_color)
     m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
-
+    return m
 
 async def db_update(table_name, table_column, val):
     sql = f'UPDATE {table_name} SET {table_column}'
@@ -77,7 +80,6 @@ async def db_reformat(myresult, type):
 async def db_delete(table_column, where_condition, adr):
     sql = f'DELETE FROM {table_column} WHERE {where_condition}'
     adr = (adr,)
-    print(adr)
     mycursor.execute(sql, adr)
 
     mydb.commit()
@@ -113,7 +115,7 @@ def check_database():  # 起動時に一度実行jsonがあるか確認ないな
 
         # discord_main_block_list を作る
         mycursor.execute(
-            'CREATE TABLE discord_main_block_list (server_id VARCHAR(255), cooperation VARCHAR(255))')
+            'CREATE TABLE discord_main_block_list (server_id VARCHAR(255), role VARCHAR(255), cooperation VARCHAR(255))')
 
         # discord_sub_block_list を作る
         mycursor.execute(
@@ -136,6 +138,14 @@ class ssm(commands.Bot):
 
     async def on_ready(self):
         check_database()
+        # discord_reaction_data を消す
+        sql = "DROP TABLE IF EXISTS discord_blocklist_reaction"
+
+        mycursor.execute(sql)
+
+        # discord_reaction_data を作る
+        mycursor.execute(
+            'CREATE TABLE discord_blocklist_reaction (channel_id VARCHAR(255), message_id VARCHAR(255), user_id VARCHAR(255), type VARCHAR(255))')
         spinner.stop()
         print('--------------------------------')
         print(self.user.name)
