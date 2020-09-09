@@ -101,8 +101,6 @@ class BlogCog(commands.Cog):
                                              f'channel_id = {ctx.channel.id} AND user_id IS NOT NULL')
             reformat_user_id = await db_reformat(db_get_user_id, 1)
 
-            print(reformat_user_id)
-
             get_user_info = await self.bot.fetch_user(reformat_user_id)
             get_user_avatar_url = get_user_info.avatar_url
             get_blog_user_name = get_user_info.name
@@ -133,7 +131,6 @@ class BlogCog(commands.Cog):
             reformat_xp = int(reformat_xp) / 100
             reformat_level = int(reformat_get_level)
             default_levelup_xp = 5  # 基本レベルを設定
-            print(f'aaaaa{default_levelup_xp}{reformat_level}')
             if reformat_level == 1:
                 next_levelup_xp = float(default_levelup_xp * 1.1) + int(reformat_level * 2) / 2
             else:
@@ -142,11 +139,10 @@ class BlogCog(commands.Cog):
                 reformat_saved_levelup_xp = await db_reformat(db_get_saved_levelup_xp, 3)
                 next_levelup_xp = float(reformat_saved_levelup_xp * 1.1) + int(reformat_level * 2) / 2
 
-            print(f'{reformat_xp}hituyou{next_levelup_xp}')
+            print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{reformat_xp}')
             level_up = float(reformat_xp / next_levelup_xp * 100)
             level_up = str(level_up)
             level_up = level_up[:level_up.find('.')]
-            print(f'例の{level_up}')
             embed = discord.Embed(
                 title=f"{emoji}{get_blog_user_name}のブログステータス", color=0x8bc34a)
             embed.set_thumbnail(url=f"{get_user_avatar_url}")
@@ -181,7 +177,6 @@ class BlogCog(commands.Cog):
             return
         if ctx.content != f'{bot_prefix}blog status':
             myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
-            print('aaaa')
             if len(myresult) >= 1:
                 # 投稿数をデータベースから取得
                 db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
@@ -191,15 +186,10 @@ class BlogCog(commands.Cog):
                 # 経験値をデータベースから取得
                 db_get_exp = await db_search('xp', 'discord_blog_xp', f'channel_id = {ctx.channel.id} AND xp >= 0')
                 reformat_xp = await db_reformat(db_get_exp, 1)
-                print('shutokusita' + reformat_xp)
                 # レベルをデータベースから取得
                 db_get_level = await db_search('level', 'discord_blog_xp',
                                                f'channel_id = {ctx.channel.id} AND level >= 0')
                 reformat_level = await db_reformat(db_get_level, 2)
-
-                print(
-                    f'{reformat_number_of_posts}\n{reformat_xp}\n{reformat_level}'
-                )
 
                 default_levelup_xp = 5  # 基本レベルを設定
 
@@ -240,7 +230,6 @@ class BlogCog(commands.Cog):
 
                 val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
                 await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
-
 
 
 def setup(bot):
