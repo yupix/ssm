@@ -96,7 +96,7 @@ def check_database():  # 起動時に一度実行jsonがあるか確認ないな
         # discord_main_blog を作る
         mycursor.execute(
             'CREATE TABLE discord_blog_main_info (server_id VARCHAR(255), category_id VARCHAR(255), '
-            'blog_reply_channel VARCHAR(255), blog_reply_webhook_url VARCHAR(255))')
+            'blog_reply_channel VARCHAR(255), blog_reply_webhook_url VARCHAR(255), role VARCHAR(255))')
 
         # discord_blog_sub_info を作る
         mycursor.execute(

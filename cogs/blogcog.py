@@ -6,6 +6,7 @@ from discord import NotFound, HTTPException
 from discord.ext import commands
 import urllib.request
 import requests
+from discord.utils import get
 
 from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
 
@@ -51,6 +52,25 @@ class BlogCog(commands.Cog):
         if ctx.invoked_subcommand is None:
             await ctx.send('このコマンドには引数が必要です')
 
+    @blog.command(name='setRole')
+    async def _setrole(self, ctx, role: discord.Role):
+        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+                                                f'category_id = {ctx.channel.category.id}')
+        if len(db_search_category_id) == 1:
+            if ctx.author.guild_permissions.administrator:
+                check_alredy_register = await db_search('role', 'discord_blog_main_info',
+                                                        f'server_id = {ctx.guild.id} AND role IS NOT NULL')
+                if not check_alredy_register:
+                    val = (f'{role.id}', f'{ctx.guild.id}')
+                    await db_update('discord_blog_main_info', 'role = %s WHERE server_id = %s', val)
+                else:
+                    print('kousinn')
+            else:
+                await embed_send(ctx, self.bot, 1, 'エラー', 'このコマンドには管理者権限が必要です')
+        else:
+            await embed_send(ctx, self.bot, 1, 'エラー',
+                             f'登録されていないカテゴリです。\n```{bot_prefix}blogcategory register```を実行してください')
+
     @blog.command(name='register')
     async def _register(self, ctx):
         db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
@@ -72,11 +92,52 @@ class BlogCog(commands.Cog):
                     f'{ctx.channel.id}', 0, 1)
                 mycursor.execute(sql, val)
                 mydb.commit()
+                member = await ctx.guild.fetch_member(ctx.author.id)
+                role_id = await db_search('role', 'discord_blog_main_info',
+                                          f'server_id = {member.guild.id} AND role IS NOT NULL')
+
+                reformat_role_id = await db_reformat(role_id, 2)
+                role = get(member.guild.roles, id=reformat_role_id)
+                await member.add_roles(role)
                 await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているチャンネルです')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないカテゴリです')
+
+    @blog.command(name='notice')
+    async def _notice(self, ctx, on_off):
+        member = await ctx.guild.fetch_member(ctx.author.id)
+        role_id = await db_search('role', 'discord_blog_main_info',
+                                  f'server_id = {member.guild.id} AND role IS NOT NULL')
+        reformat_role_id = await db_reformat(role_id, 2)
+        role = get(member.guild.roles, id=reformat_role_id)
+        async def default():
+            for x in member.roles:
+                if x.id == reformat_role_id:
+                    print('hit')
+                    hit = True
+                    break
+                else:
+                    hit = None
+            return hit
+
+        if on_off == 'on':
+            hit = await default()
+            if hit is True:
+                await embed_send(ctx, self.bot, 1, 'エラー', f'既にブログに関する通知は有効です!')
+            else:
+                await member.add_roles(role)
+                await embed_send(ctx, self.bot, 0, '成功', f'ブログに関する通知を受け取るようになりました！')
+
+        elif on_off == 'off':
+            hit = await default()
+            if hit is True:
+                await member.remove_roles(role)
+                await embed_send(ctx, self.bot, 0, '成功', f'ブログに関する通知を受け取らないようになりました！')
+            else:
+                await embed_send(ctx, self.bot, 1, 'エラー', f'既にブログに関する通知は無効です!')
+
 
     @blog.command(name='unregister')
     async def _unregister(self, ctx):
