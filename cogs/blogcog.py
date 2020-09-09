@@ -176,60 +176,61 @@ class BlogCog(commands.Cog):
         if ctx.author.bot:
             return
         if ctx.content != f'{bot_prefix}blog status':
-            myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
-            if len(myresult) >= 1:
-                # 投稿数をデータベースから取得
-                db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
-                                                         f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
-                reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
+            if len(ctx.content) >= 3:
+                myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+                if len(myresult) >= 1:
+                    # 投稿数をデータベースから取得
+                    db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
+                                                             f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
+                    reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
 
-                # 経験値をデータベースから取得
-                db_get_exp = await db_search('xp', 'discord_blog_xp', f'channel_id = {ctx.channel.id} AND xp >= 0')
-                reformat_xp = await db_reformat(db_get_exp, 1)
-                # レベルをデータベースから取得
-                db_get_level = await db_search('level', 'discord_blog_xp',
-                                               f'channel_id = {ctx.channel.id} AND level >= 0')
-                reformat_level = await db_reformat(db_get_level, 2)
+                    # 経験値をデータベースから取得
+                    db_get_exp = await db_search('xp', 'discord_blog_xp', f'channel_id = {ctx.channel.id} AND xp >= 0')
+                    reformat_xp = await db_reformat(db_get_exp, 1)
+                    # レベルをデータベースから取得
+                    db_get_level = await db_search('level', 'discord_blog_xp',
+                                                   f'channel_id = {ctx.channel.id} AND level >= 0')
+                    reformat_level = await db_reformat(db_get_level, 2)
 
-                default_levelup_xp = 5  # 基本レベルを設定
+                    default_levelup_xp = 5  # 基本レベルを設定
 
-                if reformat_level == 1:
-                    next_levelup_xp = float(default_levelup_xp * 1.1) + int(reformat_level * 2) / 2
-                else:
-                    db_get_saved_levelup_xp = await db_search('saved_levelup_xp', 'discord_blog_xp',
-                                                              f'channel_id = {ctx.channel.id} AND saved_levelup_xp IS NOT NULL')
-                    reformat_saved_levelup_xp = await db_reformat(db_get_saved_levelup_xp, 3)
-                    print(reformat_saved_levelup_xp)
-                    reformat_saved_levelup_xp = float(reformat_saved_levelup_xp)
-                    next_levelup_xp = float(reformat_saved_levelup_xp * 1.1) + int(reformat_level * 2) / 2
-                rereformat_xp = int(reformat_xp) / 100
-                rereformat_xp = str(rereformat_xp)
-                rereformat_xp = rereformat_xp[:rereformat_xp.find('.')]
+                    if reformat_level == 1:
+                        next_levelup_xp = float(default_levelup_xp * 1.1) + int(reformat_level * 2) / 2
+                    else:
+                        db_get_saved_levelup_xp = await db_search('saved_levelup_xp', 'discord_blog_xp',
+                                                                  f'channel_id = {ctx.channel.id} AND saved_levelup_xp IS NOT NULL')
+                        reformat_saved_levelup_xp = await db_reformat(db_get_saved_levelup_xp, 3)
+                        print(reformat_saved_levelup_xp)
+                        reformat_saved_levelup_xp = float(reformat_saved_levelup_xp)
+                        next_levelup_xp = float(reformat_saved_levelup_xp * 1.1) + int(reformat_level * 2) / 2
+                    rereformat_xp = int(reformat_xp) / 100
+                    rereformat_xp = str(rereformat_xp)
+                    rereformat_xp = rereformat_xp[:rereformat_xp.find('.')]
 
-                next_levelup_xp = str(next_levelup_xp)
-                next_levelup_xp = next_levelup_xp[:next_levelup_xp.find('.')]
-                print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{rereformat_xp}')
-                if int(rereformat_xp) >= int(next_levelup_xp):
-                    val = (f"{next_levelup_xp}", f"{ctx.channel.id}")
-                    await db_update('discord_blog_xp', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
+                    next_levelup_xp = str(next_levelup_xp)
+                    next_levelup_xp = next_levelup_xp[:next_levelup_xp.find('.')]
+                    print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{rereformat_xp}')
+                    if int(rereformat_xp) >= int(next_levelup_xp):
+                        val = (f"{next_levelup_xp}", f"{ctx.channel.id}")
+                        await db_update('discord_blog_xp', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
 
-                    reformat_level = int(reformat_level) + 1
-                    embed = discord.Embed(
-                        title=f"レベルアップ!", color=0x8bc34a)
-                    embed.add_field(name=f"blogのレベルが{reformat_level}に上がりました!", value=f"今後もblogでのご活躍をご期待しています!",
-                                    inline=True)
-                    await ctx.channel.send(embed=embed)
-                    next_xp = '0'
-                else:
-                    next_xp = int(reformat_xp) + + int(2) * 10
-                    print(f'今回の発言後のxp(小数) {next_xp / 100}\n今回の発言後のxp(整数) {next_xp}')
-                next_number_of_posts = int(reformat_number_of_posts) + 1
+                        reformat_level = int(reformat_level) + 1
+                        embed = discord.Embed(
+                            title=f"レベルアップ!", color=0x8bc34a)
+                        embed.add_field(name=f"blogのレベルが{reformat_level}に上がりました!", value=f"今後もblogでのご活躍をご期待しています!",
+                                        inline=True)
+                        await ctx.channel.send(embed=embed)
+                        next_xp = '0'
+                    else:
+                        next_xp = int(reformat_xp) + + int(2) * 10
+                        print(f'今回の発言後のxp(小数) {next_xp / 100}\n今回の発言後のxp(整数) {next_xp}')
+                    next_number_of_posts = int(reformat_number_of_posts) + 1
 
-                val = (f"{int(next_xp)}", f"{reformat_level}", f"{ctx.channel.id}")
-                await db_update('discord_blog_xp', 'xp = %s, level = %s WHERE channel_id = %s', val)
+                    val = (f"{int(next_xp)}", f"{reformat_level}", f"{ctx.channel.id}")
+                    await db_update('discord_blog_xp', 'xp = %s, level = %s WHERE channel_id = %s', val)
 
-                val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
-                await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
+                    val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
+                    await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
 
 
 def setup(bot):
