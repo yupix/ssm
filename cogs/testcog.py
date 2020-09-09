@@ -8,10 +8,6 @@ class TestCog(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def ping(self, ctx):
-        await ctx.send('pong!')
-
-    @commands.command()
     async def what(self, ctx, what):
         await ctx.send(f'{what}とはなんですか?')
 

@@ -11,8 +11,8 @@ class BasicCog(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def test(self, ctx):
-        await ctx.send('test!')
+    async def ping(self, ctx):
+        await ctx.channel.send(f'ping: {round(self.bot.latency * 1000)}ms ')
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
