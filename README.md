@@ -21,7 +21,7 @@ python main.py
 
 ## REPOSITORY構造
 
-- [MAIN](https://lab.akarinext.org/yupix/ssm)
-- [SUB](https://lab.akirin.xyz/yupix/ssm)
-- [BACKUP](https://github.com/yupix/ssm)
+- [MAIN Repository](https://lab.akarinext.org/yupix/ssm)
+- [SUB Repository](https://lab.akirin.xyz/yupix/ssm)
+- [BACKUP Repository](https://github.com/yupix/ssm)
 
