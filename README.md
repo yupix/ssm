@@ -19,4 +19,9 @@ git clone https://lab.akirin.xyz/yupix/ssm.git
 python main.py
 ```
 
+## REPOSITORY構造
+
+- [MAIN](https://lab.akarinext.org/yupix/ssm)
+- [SUB](https://lab.akirin.xyz/yupix/ssm)
+- [BACKUP](https://github.com/yupix/ssm)
 
