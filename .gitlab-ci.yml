@@ -5,7 +5,7 @@ test:
     tags:
         - archlinux:latest
         - docker
-        - kubernetes
+        - linux
     stage: test
     script:
         - echo "Test"
