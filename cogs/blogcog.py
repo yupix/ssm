@@ -10,7 +10,6 @@ from discord.utils import get
 
 from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
 
-
 class BlogCog(commands.Cog):
 
     def __init__(self, bot):
@@ -112,6 +111,7 @@ class BlogCog(commands.Cog):
                                   f'server_id = {member.guild.id} AND role IS NOT NULL')
         reformat_role_id = await db_reformat(role_id, 2)
         role = get(member.guild.roles, id=reformat_role_id)
+
         async def default():
             for x in member.roles:
                 if x.id == reformat_role_id:
@@ -137,7 +137,6 @@ class BlogCog(commands.Cog):
                 await embed_send(ctx, self.bot, 0, '成功', f'ブログに関する通知を受け取らないようになりました！')
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', f'既にブログに関する通知は無効です!')
-
 
     @blog.command(name='unregister')
     async def _unregister(self, ctx):

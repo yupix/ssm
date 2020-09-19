@@ -1,4 +1,5 @@
 import os
+import urllib
 
 import discord
 import mysql.connector
@@ -37,9 +38,17 @@ INITIAL_EXTENSIONS = [
     'cogs.testcog',
     'cogs.blogcog',
     'cogs.basiccog',
-    'cogs.blocklistcog'
+    'cogs.blocklistcog',
+    'cogs.modpackcog'
 ]
 
+async def check_url(url):
+    try:
+        f = urllib.request.urlopen(url)
+        print('OK:', url)
+        f.close()
+    except urllib.request.HTTPError:
+        print('Not found:', url)
 
 async def embed_send(ctx, bot, type, title, subtitle):
     if type == 0:  # 成功時
@@ -75,7 +84,8 @@ async def db_reformat(myresult, type):
         return int(reformat)
     elif type == 3:
         return float(reformat)
-
+    elif type == 4:
+        return list(reformat)
 
 async def db_delete(table_column, where_condition, adr):
     sql = f'DELETE FROM {table_column} WHERE {where_condition}'
@@ -121,6 +131,14 @@ def check_database():  # 起動時に一度実行jsonがあるか確認ないな
         mycursor.execute(
             'CREATE TABLE discord_sub_block_list (server_id VARCHAR(255), user_id VARCHAR(255), count VARCHAR(255))')
 
+        # discord_modpack_main_info を作る
+        mycursor.execute(
+            'CREATE TABLE discord_modpack_main_info (id int auto_increment, author_id VARCHAR(255), pack_name VARCHAR(255), pack_mc_version VARCHAR(255), index(id))')
+
+        # discord_modpack_sub_info を作る
+        mycursor.execute(
+            'CREATE TABLE discord_modpack_sub_info (id int auto_increment, pack_description VARCHAR(255), pack_tags VARCHAR(255), index(id))')
+
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
 
@@ -139,13 +157,13 @@ class ssm(commands.Bot):
     async def on_ready(self):
         check_database()
         # discord_reaction_data を消す
-        sql = "DROP TABLE IF EXISTS discord_blocklist_reaction"
+        sql = "DROP TABLE IF EXISTS discord_reaction"
 
         mycursor.execute(sql)
 
         # discord_reaction_data を作る
         mycursor.execute(
-            'CREATE TABLE discord_blocklist_reaction (channel_id VARCHAR(255), message_id VARCHAR(255), user_id VARCHAR(255), type VARCHAR(255))')
+            'CREATE TABLE discord_reaction (channel_id VARCHAR(255), message_id VARCHAR(255), user_id VARCHAR(255), command VARCHAR(255), mode VARCHAR(255), original_message_id VARCHAR(255))')
         spinner.stop()
         print('--------------------------------')
         print(self.user.name)
