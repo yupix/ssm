@@ -8,7 +8,8 @@ import urllib.request
 import requests
 from discord.utils import get
 
-from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
+from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole, \
+    db_insert
 
 
 class BlogCog(commands.Cog):
@@ -82,19 +83,36 @@ class BlogCog(commands.Cog):
                 sql = "INSERT INTO blog_sub_info (channel_id, embed_color, number_of_posts) VALUES (%s, %s, %s)"
                 embed_color_list = [5620992, 16088855, 16056193, 9795021]
                 print(random.choice(embed_color_list))
-                val = (
-                    f'{ctx.channel.id}', random.choice(embed_color_list), 0)
-                mycursor.execute(sql, val)
-                mydb.commit()
+                val = (f'{ctx.channel.id}', random.choice(embed_color_list), 0)
+                await db_insert(sql, val)
 
-                sql = "INSERT INTO discord_blog_xp (channel_id, xp, level) VALUES (%s, %s, %s)"
-                val = (
-                    f'{ctx.channel.id}', 0, 1)
-                mycursor.execute(sql, val)
-                mydb.commit()
+                db_search_insert_id = await db_search('id', 'blog_sub_info',
+                                                       f'channel_id = {ctx.channel.id}')
+                reformat_db_search_insert_id = await db_reformat(db_search_insert_id, 1)
+
+                # 実行したユーザーの基本情報を設定
+                sql = "INSERT INTO private_blog_user (channel_insert_id, user_id, number_of_posts) VALUES (%s, %s, %s)"
+                val = (f'{reformat_db_search_insert_id}', f'{ctx.author.id}', 0)
+                await db_insert(sql, val)
+
+                # チャンネルのレベルに関する初期情報を設定
+                sql = "INSERT INTO blog_channel_xp (channel_insert_id, xp, level) VALUES (%s, %s, %s)"
+                val = (f'{reformat_db_search_insert_id}', 0, 1)
+                await db_insert(sql, val)
+
+                db_search_user_insert_id = await db_search('id', 'private_blog_user',
+                                                       f'user_id = {ctx.author.id}')
+                reformat_db_search_user_insert_id = await db_reformat(db_search_user_insert_id, 1)
+
+                # 登録を実行したユーザーのレベルに関する初期情報を設定
+                sql = "INSERT INTO private_blog_user_xp (channel_insert_id, user_insert_id, xp, level) VALUES (%s, %s, %s, %s)"
+                val = (f'{reformat_db_search_insert_id}', f'{reformat_db_search_user_insert_id}', 0, 1)
+                await db_insert(sql, val)
+
                 member = await ctx.guild.fetch_member(ctx.author.id)
                 role_id = await db_search('role', 'blog_main_info',
                                           f'server_id = {member.guild.id} AND role IS NOT NULL')
+
                 if role_id:
                     reformat_role_id = await db_reformat(role_id, 2)
                     role = get(member.guild.roles, id=reformat_role_id)
