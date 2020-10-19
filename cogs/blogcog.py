@@ -22,9 +22,9 @@ class BlogCog(commands.Cog):
 
     @blogcategory.command()
     async def register(self, ctx):
-        myresult = await db_search('category_id', 'discord_blog_main_info', f'category_id = {ctx.channel.category.id}')
+        myresult = await db_search('category_id', 'blog_main_info', f'category_id = {ctx.channel.category.id}')
         if len(myresult) == 0:
-            sql = "INSERT INTO discord_blog_main_info (server_id, category_id) VALUES (%s, %s)"
+            sql = "INSERT INTO blog_main_info (server_id, category_id) VALUES (%s, %s)"
             val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
             mycursor.execute(sql, val)
             mydb.commit()
@@ -34,16 +34,16 @@ class BlogCog(commands.Cog):
 
     @blogcategory.command()
     async def unregister(self, ctx):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+        db_search_category_id = await db_search('category_id', 'blog_main_info',
                                                 f'category_id = {ctx.channel.category.id}')
         if len(db_search_category_id) == 0:
-            sql = "INSERT INTO discord_blog_main_info (server_id, category_id) VALUES (%s, %s)"
+            sql = "INSERT INTO blog_main_info (server_id, category_id) VALUES (%s, %s)"
             val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
             mycursor.execute(sql, val)
             mydb.commit()
             await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないカテゴリです')
         else:
-            await db_delete('discord_blog_main_info', 'category_id = %s', f'{ctx.channel.category.id}')
+            await db_delete('blog_main_info', 'category_id = %s', f'{ctx.channel.category.id}')
             await embed_send(ctx, self.bot, 0, '成功', 'カテゴリの解除に成功しました!')
 
     @commands.group()
@@ -53,15 +53,15 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='setRole')
     async def _setrole(self, ctx, role: discord.Role):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+        db_search_category_id = await db_search('category_id', 'blog_main_info',
                                                 f'category_id = {ctx.channel.category.id}')
         if len(db_search_category_id) == 1:
             if ctx.author.guild_permissions.administrator:
-                check_alredy_register = await db_search('role', 'discord_blog_main_info',
+                check_alredy_register = await db_search('role', 'blog_main_info',
                                                         f'server_id = {ctx.guild.id} AND role IS NOT NULL')
                 if not check_alredy_register:
                     val = (f'{role.id}', f'{ctx.guild.id}')
-                    await db_update('discord_blog_main_info', 'role = %s WHERE server_id = %s', val)
+                    await db_update('blog_main_info', 'role = %s WHERE server_id = %s', val)
                 else:
                     print('kousinn')
             else:
@@ -72,13 +72,13 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='register')
     async def _register(self, ctx):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+        db_search_category_id = await db_search('category_id', 'blog_main_info',
                                                 f'category_id = {ctx.channel.category.id}')
         if len(db_search_category_id) == 1:
-            db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info',
+            db_search_channel_id = await db_search('channel_id', 'blog_sub_info',
                                                    f'channel_id = {ctx.channel.id}')
             if len(db_search_channel_id) == 0:
-                sql = "INSERT INTO discord_blog_sub_info (channel_id, user_id, embed_color, number_of_posts) VALUES (%s, %s, %s, %s)"
+                sql = "INSERT INTO blog_sub_info (channel_id, embed_color, number_of_posts) VALUES (%s, %s, %s)"
                 embed_color_list = [5620992, 16088855, 16056193, 9795021]
                 print(random.choice(embed_color_list))
                 val = (
@@ -92,7 +92,7 @@ class BlogCog(commands.Cog):
                 mycursor.execute(sql, val)
                 mydb.commit()
                 member = await ctx.guild.fetch_member(ctx.author.id)
-                role_id = await db_search('role', 'discord_blog_main_info',
+                role_id = await db_search('role', 'blog_main_info',
                                           f'server_id = {member.guild.id} AND role IS NOT NULL')
                 if role_id:
                     reformat_role_id = await db_reformat(role_id, 2)
@@ -109,7 +109,7 @@ class BlogCog(commands.Cog):
     @blog.command(name='notice')
     async def _notice(self, ctx, on_off):
         member = await ctx.guild.fetch_member(ctx.author.id)
-        role_id = await db_search('role', 'discord_blog_main_info',
+        role_id = await db_search('role', 'blog_main_info',
                                   f'server_id = {member.guild.id} AND role IS NOT NULL')
         reformat_role_id = await db_reformat(role_id, 2)
         role = get(member.guild.roles, id=reformat_role_id)
@@ -142,12 +142,12 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='unregister')
     async def _unregister(self, ctx):
-        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        db_search_channel_id = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
         if len(db_search_channel_id) == 1:
-            db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
+            db_get_user_id = await db_search('user_id', 'blog_sub_info',
                                              f'channel_id = {ctx.channel.id} AND user_id = {ctx.author.id}')
             if len(db_get_user_id) == 1:
-                await db_delete('discord_blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
+                await db_delete('blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
                 await db_delete('discord_blog_xp', 'channel_id = %s', f'{ctx.channel.id}')
                 await embed_send(ctx, self.bot, 0, '成功', f'ブログの登録を解除しました\n{ctx.author.name}さん今までのご利用ありがとうございました!')
             else:
@@ -157,9 +157,9 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='status')
     async def _status(self, ctx):
-        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        db_search_channel_id = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
         if len(db_search_channel_id) == 1:
-            db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
+            db_get_user_id = await db_search('user_id', 'blog_sub_info',
                                              f'channel_id = {ctx.channel.id} AND user_id IS NOT NULL')
             reformat_user_id = await db_reformat(db_get_user_id, 1)
 
@@ -167,7 +167,7 @@ class BlogCog(commands.Cog):
             get_user_avatar_url = get_user_info.avatar_url
             get_blog_user_name = get_user_info.name
 
-            db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
+            db_get_number_of_posts = await db_search('number_of_posts', 'blog_sub_info',
                                                      f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
             reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
 
@@ -239,10 +239,10 @@ class BlogCog(commands.Cog):
             return
         if ctx.content != f'{bot_prefix}blog status':
             if len(ctx.content) >= 3:
-                myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+                myresult = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
                 if len(myresult) >= 1:
                     # 投稿数をデータベースから取得
-                    db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
+                    db_get_number_of_posts = await db_search('number_of_posts', 'blog_sub_info',
                                                              f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
                     reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
 
@@ -292,7 +292,7 @@ class BlogCog(commands.Cog):
                     await db_update('discord_blog_xp', 'xp = %s, level = %s WHERE channel_id = %s', val)
 
                     val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
-                    await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
+                    await db_update('blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
 
 
 def setup(bot):

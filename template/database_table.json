@@ -1,6 +1,6 @@
 {
   "table": {
-    "discord_blog_main_info": {
+    "blog_main_info": {
       "column": {
         "1": "server_id VARCHAR(255)",
         "2": "category_id VARCHAR(255)",
@@ -9,17 +9,33 @@
         "5": "role VARCHAR(255)"
       }
     },
-    "discord_blog_sub_info": {
+    "blog_sub_info": {
       "column": {
         "1": "id int auto_increment",
         "2": "channel_id VARCHAR(255)",
-        "3": "user_id VARCHAR(255)",
-        "4": "embed_color VARCHAR(255)",
-        "5": "number_of_posts VARCHAR(255)",
-        "6": "index(id)"
+        "3": "embed_color VARCHAR(255)",
+        "4": "number_of_posts VARCHAR(255)",
+        "5": "index(id)"
       }
     },
-    "discord_blog_xp": {
+    "pirvate_blog_user": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "user_id VARCHAR(255)",
+        "3": "number_of_posts VARCHAR(255)",
+        "4": "index(id)"
+      }
+    },
+    "blog_channel_xp": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "xp VARCHAR(255)",
+        "3": "level VARCHAR(255)",
+        "4": "saved_levelup_xp VARCHAR(255)",
+        "5": "index(id)"
+      }
+    },
+    "private_blog_user_xp": {
       "column": {
         "1": "channel_id VARCHAR(255)",
         "2": "xp VARCHAR(255)",
