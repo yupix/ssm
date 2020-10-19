@@ -94,11 +94,13 @@ class BlogCog(commands.Cog):
                 member = await ctx.guild.fetch_member(ctx.author.id)
                 role_id = await db_search('role', 'discord_blog_main_info',
                                           f'server_id = {member.guild.id} AND role IS NOT NULL')
-
-                reformat_role_id = await db_reformat(role_id, 2)
-                role = get(member.guild.roles, id=reformat_role_id)
-                await member.add_roles(role)
-                await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
+                if role_id:
+                    reformat_role_id = await db_reformat(role_id, 2)
+                    role = get(member.guild.roles, id=reformat_role_id)
+                    await member.add_roles(role)
+                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
+                else:
+                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しましたが権限が設定されていなかったため自動付与されていません!')
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているチャンネルです')
         else:
