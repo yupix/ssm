@@ -1,3 +1,4 @@
+import json
 import os
 import urllib
 
@@ -21,7 +22,9 @@ db_user = config_ini['DATABASE']['User']
 db_port = config_ini['DATABASE']['Port']
 db_host = config_ini['DATABASE']['Host']
 db_password = config_ini['DATABASE']['Password']
-db_database = config_ini['DATABASE']['Database']
+db_default_database = config_ini['DATABASE']['Default_Database']
+db_blogwar_database = config_ini['DATABASE']['BlogWar_Database']
+
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
 mydb = mysql.connector.connect(
@@ -29,7 +32,7 @@ mydb = mysql.connector.connect(
     port=f'{db_port}',
     user=f'{db_user}',
     password=f'{db_password}',
-    database=f'{db_database}'
+    database=f'{db_default_database}'
 )
 
 mycursor = mydb.cursor()
@@ -39,16 +42,31 @@ INITIAL_EXTENSIONS = [
     'cogs.blogcog',
     'cogs.basiccog',
     'cogs.blocklistcog',
-    'cogs.modpackcog'
+    'cogs.modpackcog',
+    'cogs.hostlabcog',
+    'cogs.basic_bgwcog'
 ]
+
+async def retry_db_connection():
+    mydb = mysql.connector.connect(
+        host=f'{db_host}',
+        port=f'{db_port}',
+        user=f'{db_user}',
+        password=f'{db_password}',
+        database=f'{db_default_database}'
+    )
+    global mycursor
+    mycursor = mydb.cursor()
 
 async def check_url(url):
     try:
         f = urllib.request.urlopen(url)
         print('OK:', url)
         f.close()
+        return 0
     except urllib.request.HTTPError:
         print('Not found:', url)
+        return 1
 
 async def embed_send(ctx, bot, type, title, subtitle):
     if type == 0:  # 成功時
@@ -94,50 +112,36 @@ async def db_delete(table_column, where_condition, adr):
 
     mydb.commit()
 
+def json_load(path):
+    json_open = open(f'{path}', 'r')
+    json_load = json.load(json_open)
+    return json_load
 
-def check_database():  # 起動時に一度実行jsonがあるか確認ないなら作成する関数
+def check_database():
     if os.path.exists('./tmp/dummy'):
         print('\r' + f'[main/INFO] tmpのチェック に成功')
-        mycursor.execute('USE discord_bot')
     else:
-        mycursor.execute('DROP DATABASE discord_bot')
-        mycursor.execute('CREATE DATABASE discord_bot')
-        mycursor.execute('USE discord_bot')
-        # discord_main_blog を作る
-        mycursor.execute(
-            'CREATE TABLE discord_blog_main_info (server_id VARCHAR(255), category_id VARCHAR(255), '
-            'blog_reply_channel VARCHAR(255), blog_reply_webhook_url VARCHAR(255), role VARCHAR(255))')
+        mycursor.execute('DROP DATABASE default_discord')
+        mycursor.execute('CREATE DATABASE default_discord')
 
-        # discord_blog_sub_info を作る
-        mycursor.execute(
-            'CREATE TABLE discord_blog_sub_info (channel_id VARCHAR(255), user_id VARCHAR(255),  embed_color VARCHAR('
-            '255), number_of_posts VARCHAR(255))')
+        mycursor.execute('DROP DATABASE discord_blogwar')
+        mycursor.execute('CREATE DATABASE discord_blogwar')
 
-        # discord_blog_xp を作る
-        mycursor.execute(
-            'CREATE TABLE discord_blog_xp (channel_id VARCHAR(255), xp VARCHAR(255), '
-            'level VARCHAR(255), saved_levelup_xp VARCHAR(255))')
+        mycursor.execute('USE default_discord')
 
-        # discord_blog_user_info を作る
-        mycursor.execute(
-            'CREATE TABLE discord_blog_user_info (channel_id VARCHAR(255), last_logind VARCHAR(255), number_logins '
-            'VARCHAR(255), total_login VARCHAR(255))')
 
-        # discord_main_block_list を作る
-        mycursor.execute(
-            'CREATE TABLE discord_main_block_list (server_id VARCHAR(255), role VARCHAR(255), cooperation VARCHAR(255))')
+        database_table_list_load = json_load("./template/database_table.json")
 
-        # discord_sub_block_list を作る
-        mycursor.execute(
-            'CREATE TABLE discord_sub_block_list (server_id VARCHAR(255), user_id VARCHAR(255), count VARCHAR(255))')
+        print(database_table_list_load['table']['discord_sub_block_list']['column']['1'])
 
-        # discord_modpack_main_info を作る
-        mycursor.execute(
-            'CREATE TABLE discord_modpack_main_info (id int auto_increment, author_id VARCHAR(255), pack_name VARCHAR(255), pack_mc_version VARCHAR(255), index(id))')
+        for x in database_table_list_load['table']:
+            set_column = ""
+            for i in database_table_list_load['table'][f'{x}']['column']:
+                get_column = database_table_list_load['table'][f'{x}']['column'][f'{i}']
+                set_column += get_column + ', '
+            mycursor.execute(
+                f'CREATE TABLE {x} ({set_column[:-2]})')
 
-        # discord_modpack_sub_info を作る
-        mycursor.execute(
-            'CREATE TABLE discord_modpack_sub_info (id int auto_increment, pack_description VARCHAR(255), pack_tags VARCHAR(255), index(id))')
 
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
@@ -171,21 +175,52 @@ class ssm(commands.Bot):
         print('--------------------------------')
 
     async def on_message(self, ctx):
+        """利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト
+        if ctx.author.bot:
+            return
+        command_list_load = json_load("./template/command_list.json")
+
+        message_content = ctx.content.split()
+        for x in command_list_load['command']:
+            command_name = command_list_load['command'][x]
+            if message_content[0] == bot_prefix + command_name:
+                check_command = 'yes'
+
+
+        mycursor.execute(
+            f'SELECT consent_status FROM server_main_info WHERE server_id = {ctx.guild.id} LIMIT 1')
+        check_consent_status = mycursor.fetchall()
+
+        print(check_consent_status)
+        if not check_consent_status:
+            if 'check_command' in locals():
+                embed = discord.Embed(
+                    title='エラー', description=f'利用規約に同意していません！以下のコマンドで利用規約に同意してください\n```{bot_prefix}agree```', color=0xd32f2f)
+
+                await ctx.channel.send(embed=embed)
+                return 1
+
+        """
         print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
         await bot.process_commands(ctx)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, CommandNotFound):
             await ctx.send('存在しないコマンドです')
-            return
+            return 1
         else:
-            embed = discord.Embed(title='エラーレポート', description='', color=0xd32f2f)
-            embed.add_field(name='エラー発生サーバーID', value=ctx.guild.id, inline=True)
-            embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=True)
-            embed.add_field(name='エラー発生コマンド', value=ctx.message.content, inline=True)
-            embed.add_field(name='エラー内容', value=error, inline=True)
-            m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
-            await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
+            print(error)
+            if str(error) in 'Command raised an exception: OperationalError: 2055:':
+                await retry_db_connection()
+                await ctx.send(f'申し訳ありません、データベースエラーが発生しました。エラーが発生したことにより自動的に修正された可能性があります！再度実行してエラーが出るようであれば報告してください。')
+            else:
+                embed = discord.Embed(title='エラーレポート', description='', color=0xd32f2f)
+                embed.add_field(name='エラー発生サーバーID', value=ctx.guild.id, inline=True)
+                embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=True)
+                embed.add_field(name='エラー発生コマンド', value=ctx.message.content, inline=True)
+                embed.add_field(name='エラー内容', value=error, inline=True)
+                m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
+                await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
 
 
 if __name__ == '__main__':

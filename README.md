@@ -19,6 +19,22 @@ git clone https://lab.akirin.xyz/yupix/ssm.git
 python main.py
 ```
 
+## CONFIG
+
+### COMMAND
+
+基本的にコマンドの使用可能かいなかはサーバー毎に設定できるべきであり何らかの理由で自分のBotが入ってるサーバーで特定のコマンドをoffにすることができます  
+
+#### 値に関して
+
+- true: 全サーバーで有効
+- false: 全サーバーで無効
+
+
+| コマンド名 | デフォルト値 |
+|---|---|
+|blogcategory|true|
+
 ## REPOSITORY構造
 
 - [MAIN Repository](https://lab.akarinext.org/yupix/ssm)

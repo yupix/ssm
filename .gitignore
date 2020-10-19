@@ -622,7 +622,6 @@ fabric.properties
 ### Eclipse template
 .metadata
 bin/
-tmp/
 *.tmp
 *.bak
 *.swp
@@ -681,3 +680,4 @@ local.properties
 # Typically, this file would be tracked if it contains build/dependency configurations:
 #.project
 
+ebooks.csv
