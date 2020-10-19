@@ -4,3 +4,5 @@ mysql-connector-python
 Halo
 configparser
 requests
+beautifulsoup4
+lxml

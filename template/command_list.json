@@ -1,0 +1,11 @@
+{
+  "command": {
+    "1": "blog",
+    "2": "bloguser",
+    "3": "blogcategory",
+    "4": "hostlab",
+    "5": "modpack",
+    "6": "blocklist",
+    "7": "ping"
+  }
+}
