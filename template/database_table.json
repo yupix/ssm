@@ -18,29 +18,30 @@
         "5": "index(id)"
       }
     },
-    "pirvate_blog_user": {
+    "private_blog_user": {
       "column": {
         "1": "id int auto_increment",
-        "2": "user_id VARCHAR(255)",
-        "3": "number_of_posts VARCHAR(255)",
-        "4": "index(id)"
+        "2": "channel_insert_id VARCHAR(255)",
+        "3": "user_id VARCHAR(255)",
+        "4": "number_of_posts VARCHAR(255)",
+        "5": "index(id)"
       }
     },
     "blog_channel_xp": {
       "column": {
-        "1": "id int auto_increment",
+        "1": "channel_insert_id VARCHAR(255)",
         "2": "xp VARCHAR(255)",
         "3": "level VARCHAR(255)",
-        "4": "saved_levelup_xp VARCHAR(255)",
-        "5": "index(id)"
+        "4": "saved_levelup_xp VARCHAR(255)"
       }
     },
     "private_blog_user_xp": {
       "column": {
-        "1": "channel_id VARCHAR(255)",
-        "2": "xp VARCHAR(255)",
-        "3": "level VARCHAR(255)",
-        "4": "saved_levelup_xp VARCHAR(255)"
+        "1": "channel_insert_id VARCHAR(255)",
+        "2": "user_insert_id VARCHAR(255)",
+        "3": "xp VARCHAR(255)",
+        "4": "level VARCHAR(255)",
+        "5": "saved_levelup_xp VARCHAR(255)"
       }
     },
     "discord_blog_user_info": {
