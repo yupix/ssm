@@ -44,7 +44,6 @@ INITIAL_EXTENSIONS = [
     'cogs.blocklistcog',
     'cogs.modpackcog',
     'cogs.hostlabcog',
-    'cogs.pso2cog',
     'cogs.basic_bgwcog'
 ]
 

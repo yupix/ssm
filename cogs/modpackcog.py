@@ -11,7 +11,7 @@ async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_re
     modpack_name = f'{ogl_msg_list[2]}'
     modpack_mc_version = f'{ogl_msg_list[3]}'
     modpack_description = f'{ogl_msg_list[4]}'
-    modpack_tags = f'{ogl_msg_list[5:]}'
+    modpack_tags = ','.join(ogl_msg_list[5:])
 
     print(f'ModPack名: {modpack_name}\n'
           f'ModPackのMCバージョン: {modpack_mc_version}\n'
@@ -135,7 +135,7 @@ class ModpackCog(commands.Cog):
 
 
             pack_mc_version = await db_search('pack_mc_version', 'discord_modpack_main_info',
-                                                    f'author_id = {ctx.author.id} AND id = {pack_id} AND pack_mc_version IS NOT NULL')
+                                              f'author_id = {ctx.author.id} AND id = {pack_id} AND pack_mc_version IS NOT NULL')
             reformat_pack_mc_version = await db_reformat(pack_mc_version, 1)
 
 
@@ -147,9 +147,8 @@ class ModpackCog(commands.Cog):
                                                     f'id = {pack_id} AND pack_tags IS NOT NULL')
 
             reformat_pack_tags = await db_reformat(pack_tags, 1)
-            reformat_pack_tags = list(reformat_pack_tags)
-            StrA = "".join(reformat_pack_tags)
-            print(StrA)
+            reformat_pack_tags = reformat_pack_tags.replace(',', ', ')
+
             embed = discord.Embed(title='登録情報の確認', description='登録したあとに内容を変更することは可能です', color=0x0f9dcc)
             embed.add_field(name='ModPack名', value=f'{reformat_pack_name}', inline=True)
             embed.add_field(name='MC VERSION', value=f'{reformat_pack_mc_version}', inline=True)
