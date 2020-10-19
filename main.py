@@ -47,6 +47,7 @@ INITIAL_EXTENSIONS = [
     'cogs.basic_bgwcog'
 ]
 
+
 async def retry_db_connection():
     mydb = mysql.connector.connect(
         host=f'{db_host}',
@@ -58,6 +59,7 @@ async def retry_db_connection():
     global mycursor
     mycursor = mydb.cursor()
 
+
 async def check_url(url):
     try:
         f = urllib.request.urlopen(url)
@@ -67,6 +69,7 @@ async def check_url(url):
     except urllib.request.HTTPError:
         print('Not found:', url)
         return 1
+
 
 async def embed_send(ctx, bot, type, title, subtitle):
     if type == 0:  # 成功時
@@ -78,8 +81,14 @@ async def embed_send(ctx, bot, type, title, subtitle):
     m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
     return m
 
+
 async def db_update(table_name, table_column, val):
     sql = f'UPDATE {table_name} SET {table_column}'
+    mycursor.execute(sql, val)
+    mydb.commit()
+
+
+async def db_insert(sql, val):
     mycursor.execute(sql, val)
     mydb.commit()
 
@@ -105,6 +114,7 @@ async def db_reformat(myresult, type):
     elif type == 4:
         return list(reformat)
 
+
 async def db_delete(table_column, where_condition, adr):
     sql = f'DELETE FROM {table_column} WHERE {where_condition}'
     adr = (adr,)
@@ -112,10 +122,12 @@ async def db_delete(table_column, where_condition, adr):
 
     mydb.commit()
 
+
 def json_load(path):
     json_open = open(f'{path}', 'r')
     json_load = json.load(json_open)
     return json_load
+
 
 def check_database():
     if os.path.exists('./tmp/dummy'):
@@ -129,7 +141,6 @@ def check_database():
 
         mycursor.execute('USE default_discord')
 
-
         database_table_list_load = json_load("./template/database_table.json")
 
         print(database_table_list_load['table']['discord_sub_block_list']['column']['1'])
@@ -141,7 +152,6 @@ def check_database():
                 set_column += get_column + ', '
             mycursor.execute(
                 f'CREATE TABLE {x} ({set_column[:-2]})')
-
 
         with open('./tmp/dummy', mode='x') as f:
             f.write('')

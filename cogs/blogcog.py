@@ -10,6 +10,7 @@ from discord.utils import get
 
 from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
 
+
 class BlogCog(commands.Cog):
 
     def __init__(self, bot):
@@ -82,7 +83,7 @@ class BlogCog(commands.Cog):
                 embed_color_list = [5620992, 16088855, 16056193, 9795021]
                 print(random.choice(embed_color_list))
                 val = (
-                    f'{ctx.channel.id}', f'{ctx.author.id}', random.choice(embed_color_list), 0)
+                    f'{ctx.channel.id}', random.choice(embed_color_list), 0)
                 mycursor.execute(sql, val)
                 mydb.commit()
 

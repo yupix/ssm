@@ -13,11 +13,13 @@ bgw_mydb = mysql.connector.connect(
 
 bgw_mycursor = bgw_mydb.cursor()
 
+
 async def bgw_db_search(table_name, table_column, where_condition):
     bgw_mycursor.execute(
         f'SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1')
     myresult = bgw_mycursor.fetchall()
     return myresult
+
 
 class Basic_BgwCog(commands.Cog):
 

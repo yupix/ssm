@@ -47,6 +47,7 @@ async def basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reac
             mydb.commit()
 """
 
+
 class BasicCog(commands.Cog):
 
     def __init__(self, bot):
@@ -139,9 +140,8 @@ class BasicCog(commands.Cog):
                 await blog_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction)
             elif reformat_command == 'modpack':
                 await modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg)
-            #elif reformat_command == 'basic':
-                #await basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg)
-
+            # elif reformat_command == 'basic':
+                # await basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg)
 
 
 def setup(bot):
