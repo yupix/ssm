@@ -22,7 +22,13 @@ git clone https://lab.akarinext.org/yupix/ssm.git
 #SUB REPOSITORY 
 git clone https://lab.akirin.xyz/yupix/ssm.git
 
+
+cd ssm
 python main.py
+
+#ブログでの権限をインポート(必須)
+db_user='root' # データベースのユーザー名に指定してください
+mysql -u ${db_user} -p -h localhost default_discord < ./template/role.txt'
 ```
 
 ## CONFIG
