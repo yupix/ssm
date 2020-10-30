@@ -9,41 +9,46 @@
     },
     "blog_server": {
       "column": {
-        "1": "blog_id INTEGER PRIMARY KEY",
-        "2": "server_id BIGINT",
+        "1": "blog_id INTEGER",
+        "2": "server_id BIGINT PRIMARY KEY",
         "3": "CONSTRAINT fk_blogs_id_blog_server FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
     },
     "blog_category": {
       "column": {
-        "1": "blog_id INTEGER PRIMARY KEY",
-        "2": "category_id BIGINT",
-        "3": "CONSTRAINT fk_blogs_id_blog_category FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+        "1": "blog_id INTEGER",
+        "2": "server_id BIGINT",
+        "3": "category_id BIGINT PRIMARY KEY",
+        "4": "CONSTRAINT blog_category_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
+        "5": "CONSTRAINT blog_category_FK_1 FOREIGN KEY (server_id) REFERENCES default_discord.blog_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
     },
     "blog_channel": {
       "column": {
-        "1": "blog_id INTEGER PRIMARY KEY",
-        "2": "channel_id BIGINT",
+        "1": "blog_id INTEGER",
+        "2": "channel_id BIGINT PRIMARY KEY",
         "3": "CONSTRAINT fk_blogs_id_blog_channel FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
     },
     "blog_detail": {
       "column": {
         "1": "blog_id INTEGER PRIMARY KEY",
-        "2": "blog_channel INT",
+        "2": "blog_channel BIGINT",
         "3": "total_post INT",
         "4": "created_at INT",
-        "5": "CONSTRAINT fk_blogs_id_blog_detail FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+        "5": "CONSTRAINT blog_detail_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
+        "6": "CONSTRAINT blog_detail_FK_1 FOREIGN KEY (blog_channel) REFERENCES default_discord.blog_channel(channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
     },
     "blog_user_detail": {
       "column": {
         "1": "blog_id INTEGER PRIMARY KEY",
-        "2": "blog_channel INT",
-        "3": "total_post INT",
-        "4": "created_at INT",
-        "5": "CONSTRAINT fk_blogs_id_blog_user_detail FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+        "2": "channel_id BIGINT",
+        "3": "user_id INT",
+        "4": "total_post INT",
+        "5": "created_at INT",
+        "6": "CONSTRAINT fk_blogs_id_blog_user_detail FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE",
+        "7": "CONSTRAINT fk_blog_channel_channel_id_blog_user_detail FOREIGN KEY (channel_id) REFERENCES blog_channel (channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
     },
     "blog_xp": {
