@@ -68,6 +68,29 @@
         "4": "xp_saved_levelup_xp INT",
         "5": "CONSTRAINT fk_blogs_id_blog_user_xp FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
       }
+    },
+    "blocklists": {
+      "column": {
+        "1": "id INT auto_increment PRIMARY KEY",
+        "2": "created_at DATETIME",
+        "3": "index(id)"
+      }
+    },
+    "blocklist_server": {
+      "column": {
+        "1": "block_id INTEGER",
+        "2": "server_id BIGINT PRIMARY KEY",
+        "3": "CONSTRAINT blocklist_server_FK FOREIGN KEY (block_id) REFERENCES blocklists (id) ON DELETE CASCADE ON UPDATE CASCADE"
+      }
+    },
+    "blocklist_user": {
+      "column": {
+        "1": "block_id INTEGER",
+        "2": "server_id BIGINT",
+        "3": "user_id BIGINT PRIMARY KEY",
+        "4": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists (id) ON DELETE CASCADE ON UPDATE CASCADE",
+        "5": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server (server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+      }
     }
   }
 }
