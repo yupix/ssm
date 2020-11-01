@@ -1,3 +1,4 @@
+import datetime
 import math
 import random
 
@@ -103,12 +104,31 @@ class BlogCog(commands.Cog):
 
     @blogcategory.command()
     async def register(self, ctx):
-        myresult = await db_search('category_id', 'blog_main_info', f'category_id = {ctx.channel.category.id}')
-        if len(myresult) == 0:
-            sql = "INSERT INTO blog_main_info (server_id, category_id) VALUES (%s, %s)"
-            val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
-            mycursor.execute(sql, val)
+
+        ##
+        # Get some id
+        ##
+        get_server_id = await db_search('server_id', 'blog_server', f'server_id = {ctx.guild.id}')
+
+        if get_server_id:
+            search_blog_id = await db_reformat(await db_search('blog_id', 'blog_server', f'server_id = {ctx.guild.id}'), 1)
+            search_blog_category_id = await db_search('category_id', 'blog_category', f'blog_id = {search_blog_id}')
+        else:
+            date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            mycursor.execute(f'INSERT INTO blogs (created_at) VALUES (\'{date}\')')
             mydb.commit()
+
+            sql = "INSERT INTO blog_server (blog_id, server_id) VALUES (%s, %s)"
+            val = (1, f'{ctx.guild.id}')
+            await db_insert(sql, val)
+            search_blog_id = 1
+            search_blog_category_id = []  # 必ず成功
+
+        if len(search_blog_category_id) == 0:
+            sql = "INSERT INTO blog_category (blog_id, server_id, category_id) VALUES (%s, %s, %s)"
+            val = (f'{search_blog_id}', f'{ctx.guild.id}', f'{ctx.channel.category.id}')
+            await db_insert(sql, val)
+
             await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているカテゴリです')
@@ -341,14 +361,16 @@ class BlogCog(commands.Cog):
         if ctx.author.bot:
             return
         if ctx.content != f'{bot_prefix}blog status': # blog statusコマンドが投稿にカウントされないように
-            if len(ctx.content) >= 3:
-                myresult = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
-                execution_user_id = f'{ctx.author.id}'
-                if len(myresult) >= 1:
-                    print(f'{myresult}')
-                    await blog_level_system(ctx, execution_user_id, 0)
-                    await blog_level_system(ctx, execution_user_id, 1)
-
+            """ 現在使用不可なのでコメントアウト
+            if len(ctx.content) >= 3: 
+                if len(ctx.content) >= 3:
+                    myresult = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
+                    execution_user_id = f'{ctx.author.id}'
+                    if len(myresult) >= 1:
+                        print(f'{myresult}')
+                        await blog_level_system(ctx, execution_user_id, 0)
+                        await blog_level_system(ctx, execution_user_id, 1)
+            """
 
 def setup(bot):
     bot.add_cog(BlogCog(bot))
