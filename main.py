@@ -43,8 +43,7 @@ INITIAL_EXTENSIONS = [
     'cogs.basiccog',
     'cogs.blocklistcog',
     'cogs.modpackcog',
-    'cogs.hostlabcog',
-    'cogs.basic_bgwcog'
+    'cogs.hostlabcog'
 ]
 
 
@@ -101,18 +100,21 @@ async def db_search(table_name, table_column, where_condition):
 
 
 async def db_reformat(myresult, type):
-    for x in myresult:
-        reformat = "".join(map(str, x))
-    if type == 0:
-        return myresult
-    elif type == 1:
-        return str(reformat)
-    elif type == 2:
-        return int(reformat)
-    elif type == 3:
-        return float(reformat)
-    elif type == 4:
-        return list(reformat)
+    if len(myresult) > 0 :
+        for x in myresult:
+            reformat = "".join(map(str, x))
+        if type == 0:
+            return myresult
+        elif type == 1:
+            return str(reformat)
+        elif type == 2:
+            return int(reformat)
+        elif type == 3:
+            return float(reformat)
+        elif type == 4:
+            return list(reformat)
+    else:
+        return None
 
 
 async def db_delete(table_column, where_condition, adr):
@@ -139,22 +141,30 @@ def check_database():
         mycursor.execute('DROP DATABASE discord_blogwar')
         mycursor.execute('CREATE DATABASE discord_blogwar')
 
-        mycursor.execute('USE default_discord')
-
-        database_table_list_load = json_load("./template/database_table.json")
-
-        print(database_table_list_load['table']['discord_sub_block_list']['column']['1'])
-
-        for x in database_table_list_load['table']:
-            set_column = ""
-            for i in database_table_list_load['table'][f'{x}']['column']:
-                get_column = database_table_list_load['table'][f'{x}']['column'][f'{i}']
-                set_column += get_column + ', '
-            mycursor.execute(
-                f'CREATE TABLE {x} ({set_column[:-2]})')
-
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
+
+mycursor.execute('USE default_discord')
+
+# discord_reaction_data を作る
+database_table_list_load = json_load("./template/database_table.json")
+
+for x in database_table_list_load:
+    if f'{x}' == 'delete':
+        for n in database_table_list_load[x]['table']:
+            get_table_name = database_table_list_load[f'{x}']['table'][f'{n}']
+            sql = (f'DROP TABLE IF EXISTS {get_table_name}')
+            mycursor.execute(sql)
+    elif f'{x}' == 'create':
+        for n in database_table_list_load[f'{x}']['table']:
+            set_column = ""
+            for i in database_table_list_load[f'{x}']['table'][f'{n}']['column']:
+                get_column = database_table_list_load[f'{x}']['table'][f'{n}']['column'][f'{i}']
+                set_column += get_column + ', '
+            mycursor.execute(
+                f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
+
+
 
 
 class ssm(commands.Bot):
@@ -170,14 +180,6 @@ class ssm(commands.Bot):
 
     async def on_ready(self):
         check_database()
-        # discord_reaction_data を消す
-        sql = "DROP TABLE IF EXISTS discord_reaction"
-
-        mycursor.execute(sql)
-
-        # discord_reaction_data を作る
-        mycursor.execute(
-            'CREATE TABLE discord_reaction (channel_id VARCHAR(255), message_id VARCHAR(255), user_id VARCHAR(255), command VARCHAR(255), mode VARCHAR(255), original_message_id VARCHAR(255))')
         spinner.stop()
         print('--------------------------------')
         print(self.user.name)
@@ -214,7 +216,7 @@ class ssm(commands.Bot):
         print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
         await bot.process_commands(ctx)
 
-    async def on_command_error(self, ctx, error):
+"""    async def on_command_error(self, ctx, error):
         if isinstance(error, CommandNotFound):
             await ctx.send('存在しないコマンドです')
             return 1
@@ -231,7 +233,7 @@ class ssm(commands.Bot):
                 embed.add_field(name='エラー内容', value=error, inline=True)
                 m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
                 await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
-
+"""
 
 if __name__ == '__main__':
     spinner = Halo(text='Loading Now',
