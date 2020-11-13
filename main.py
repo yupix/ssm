@@ -25,6 +25,8 @@ db_password = config_ini['DATABASE']['Password']
 db_default_database = config_ini['DATABASE']['Default_Database']
 db_blogwar_database = config_ini['DATABASE']['BlogWar_Database']
 
+reset_status = config_ini['RESET']['Status']
+
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
 mydb = mysql.connector.connect(
@@ -143,20 +145,7 @@ def json_load(path):
     json_load = json.load(json_open)
     return json_load
 
-
-def check_database():
-    if os.path.exists('./tmp/dummy'):
-        print('\r' + f'[main/INFO] tmpのチェック に成功')
-    else:
-        mycursor.execute('DROP DATABASE IF EXISTS default_discord')
-        mycursor.execute('CREATE DATABASE default_discord')
-
-        mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
-        mycursor.execute('CREATE DATABASE discord_blogwar')
-
-        with open('./tmp/dummy', mode='x') as f:
-            f.write('')
-
+def create_default_table():
     mycursor.execute('USE default_discord')
 
     # discord_reaction_data を作る
@@ -177,6 +166,21 @@ def check_database():
                 mycursor.execute(
                     f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
 
+
+def check_database():
+    if os.path.exists('./tmp/dummy'):
+        print('\r' + f'[main/INFO] tmpのチェック に成功')
+    else:
+        mycursor.execute('DROP DATABASE IF EXISTS default_discord')
+        mycursor.execute('CREATE DATABASE default_discord')
+
+        mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
+        mycursor.execute('CREATE DATABASE discord_blogwar')
+
+        with open('./tmp/dummy', mode='x') as f:
+            f.write('')
+
+    create_default_table()
 
 class ssm(commands.Bot):
 
