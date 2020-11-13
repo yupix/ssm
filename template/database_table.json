@@ -85,9 +85,20 @@
       },
       "blocklist_server": {
         "column": {
-          "1": "block_id INTEGER",
-          "2": "server_id BIGINT PRIMARY KEY",
-          "3": "CONSTRAINT blocklist_server_FK FOREIGN KEY (block_id) REFERENCES blocklists (id) ON DELETE CASCADE ON UPDATE CASCADE"
+          "1": "server_id BIGINT PRIMARY KEY"
+        }
+      },
+      "blocklist_settings": {
+        "column": {
+          "1": "server_id BIGINT PRIMARY KEY",
+          "2": "mode VARCHAR(126)"
+        }
+      },
+      "blocklist_role": {
+        "column": {
+          "1": "server_id BIGINT",
+          "2": "role_id BIGINT PRIMARY KEY",
+          "3": "CONSTRAINT blocklist_role_FK FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
         }
       },
       "blocklist_user": {
@@ -95,14 +106,14 @@
           "1": "block_id INTEGER",
           "2": "server_id BIGINT",
           "3": "user_id BIGINT PRIMARY KEY",
-          "4": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists (id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "5": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server (server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+          "4": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists(id) ON DELETE CASCADE ON UPDATE CASCADE",
+          "5": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
         }
       },
       "reactions": {
         "column": {
           "1": "id INT auto_increment PRIMARY KEY",
-          "2": "command varchar(100)",
+          "2": "message_id BIGINT",
           "3": "index(id)"
         }
       },
@@ -111,9 +122,10 @@
           "1": "reaction_id INT",
           "2": "server_id BIGINT",
           "3": "channel_id BIGINT",
-          "4": "message_id BIGINT",
-          "5": "user_id BIGINT",
-          "6": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES default_discord.reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
+          "4": "user_id BIGINT",
+          "5": "command varchar(100)",
+          "6": "mode INT",
+          "7": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES default_discord.reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
         }
       }
     }
