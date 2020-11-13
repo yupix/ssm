@@ -78,18 +78,30 @@ class BasicCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        check_block_list = await db_search('user_id', 'blocklist_user',
-                                           f'server_id = {member.guild.id} AND user_id = {member.id}')
-        if check_block_list:
-            print('ブロックユーザーです')
-        else:
-            print('ブロックリストじゃないよ')
-            role_id = await db_search('role', 'discord_main_block_list',
-                                      f'server_id = {member.guild.id} AND role IS NOT NULL')
-            reformat_role_id = await db_reformat(role_id, 2)
-            role = get(member.guild.roles, id=reformat_role_id)
-            print(f'{role.name}')
-            await member.add_roles(role)
+        search_server_id = await db_reformat(
+            await db_search('server_id', 'blocklist_server', f'server_id = {member.guild.id}'), 2)
+        if search_server_id:
+            search_blocklist_mode = await db_reformat(
+                await db_search('mode', 'blocklist_settings', f'server_id = {member.guild.id}'), 1)
+            check_block_list = await db_search('user_id', 'blocklist_user',
+                                               f'server_id = {member.guild.id} AND user_id = {member.id}')
+            if check_block_list:
+                print('ブロックユーザーです')
+                if f'{search_blocklist_mode}' == 'autokick':  # ブロックユーザーには権限を付与しないモード
+                    await member.kick()
+                elif f'{search_blocklist_mode}' == 'autoban':  # ブロックユーザーには権限を付与しないモード
+                    await member.ban()
+
+            else:
+                print('ブロックリストじゃないよ')
+                if f'{search_blocklist_mode}' == 'nonerole':  # ブロックユーザーには権限を付与しないモード
+                    role_id = await db_search('role_id', 'blocklist_role',
+                                              f'server_id = {member.guild.id}')
+                    reformat_role_id = await db_reformat(role_id, 2)
+                    role = get(member.guild.roles, id=reformat_role_id)
+                    print(f'{role.name}')
+                    await member.add_roles(role)
+
 
         # reformat_check_reaction = await db_reformat(check_reaction, 1)
 
