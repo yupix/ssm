@@ -1,6 +1,7 @@
 import datetime
 
 import discord
+import typing
 from discord import NotFound, HTTPException
 from discord.ext import commands
 
@@ -42,9 +43,12 @@ async def blog_reaction(reaction, reformat_mode, user, msg, reformat_check_react
             mydb.commit()
 
             reaction_id = await db_get_auto_increment() # auto_incrementのidを取得
+            search_reaction_id = await db_reformat(await db_search('id', 'reactions', f'message_id = {msg.id}'), 2)  # reaction_idを取得
+            search_mode = await db_reformat(await db_search('block_mode', 'blocklist_reaction', f'server_id = {msg.guild.id} AND reaction_id = {search_reaction_id}'), 1)  # modeを取得
+            print(f'mode: {search_mode}')
             print(f'ユーザー{user.id}')
-            sql = "INSERT INTO blocklist_user (block_id, server_id, user_id) VALUES (%s, %s, %s)"
-            val = (reaction_id, msg.guild.id, user.id)
+            sql = "INSERT INTO blocklist_user (block_id, server_id, user_id, mode) VALUES (%s, %s, %s, %s)"
+            val = (reaction_id, msg.guild.id, user.id, search_mode)
             await db_insert(sql, val)
 
         elif reformat_mode == '1':
@@ -99,7 +103,7 @@ class BlocklistCog(commands.Cog):
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に設定が存在します')
     @blocklist.command()
-    async def add(self, ctx, user_id):
+    async def add(self, ctx, user_id, mode: typing.Optional[str] = None):
         if ctx.author.guild_permissions.administrator:
             db_search_server_id = await db_reformat(await db_search('server_id', 'blocklist_server', f'server_id = {ctx.guild.id}'), 2)
             if db_search_server_id: # サーバーIDが既に登録されてるか確認
@@ -108,8 +112,6 @@ class BlocklistCog(commands.Cog):
                     search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id = await blocklist_informations(ctx, user)
                     print(search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id)
                     if not search_blocklist_user_id:
-                        print('koko')
-                        print('koko2')
                         embed = discord.Embed(title=f"{user.name} をブロックリストに登録しますか？",
                                               description="怒りに我を忘れていないかもう一度冷静になって確認してみましょう\n問題が無いようなら✅を押してください。",
                                               color=0xffc629)
@@ -124,12 +126,10 @@ class BlocklistCog(commands.Cog):
 
                         search_reaction_id = await db_reformat(await db_search('id', 'reactions', f'message_id = {msg.id}'), 2)
 
-                        sql = "INSERT INTO blocklist_reaction (reaction_id, server_id, channel_id, user_id, command, mode) VALUES (%s, %s, %s, %s, %s, %s)"
-                        val = (search_reaction_id, msg.guild.id, msg.channel.id, user.id, 'blocklist', 0)
+                        sql = "INSERT INTO blocklist_reaction (reaction_id, server_id, channel_id, user_id, command, mode, block_mode) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                        val = (search_reaction_id, msg.guild.id, msg.channel.id, user.id, 'blocklist', 0, f'{mode}')
+                        await db_insert(sql, val)
 
-                        mycursor.execute(sql, val)
-
-                        mydb.commit()
                     else:
                         await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているユーザーです')
                 except NotFound:

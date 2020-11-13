@@ -78,19 +78,31 @@ class BasicCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
+        async def blockuser_treatment(search_blocklist_mode, member):
+            print(search_blocklist_mode)
+            print(member)
+            if f'{search_blocklist_mode}' == 'autokick':  # ブロックユーザーには権限を付与しないモード
+                await member.kick()
+            elif f'{search_blocklist_mode}' == 'autoban':  # ブロックユーザーには権限を付与しないモード
+                await member.ban()
+
         search_server_id = await db_reformat(
             await db_search('server_id', 'blocklist_server', f'server_id = {member.guild.id}'), 2)
         if search_server_id:
             search_blocklist_mode = await db_reformat(
                 await db_search('mode', 'blocklist_settings', f'server_id = {member.guild.id}'), 1)
-            check_block_list = await db_search('user_id', 'blocklist_user',
-                                               f'server_id = {member.guild.id} AND user_id = {member.id}')
+            check_block_list = await db_search('user_id', 'blocklist_user', f'server_id = {member.guild.id} AND user_id = {member.id}')
             if check_block_list:
                 print('ブロックユーザーです')
-                if f'{search_blocklist_mode}' == 'autokick':  # ブロックユーザーには権限を付与しないモード
-                    await member.kick()
-                elif f'{search_blocklist_mode}' == 'autoban':  # ブロックユーザーには権限を付与しないモード
-                    await member.ban()
+                search_blocklist_user_mode = await db_reformat(await db_search('mode', 'blocklist_user',
+                                               f'server_id = {member.guild.id} AND user_id = {member.id}'), 1)
+
+                if f'{search_blocklist_user_mode}' != 'None':
+                    await blockuser_treatment(search_blocklist_user_mode, member)
+                    print('ユーザー処理されました')
+                else:
+                    await blockuser_treatment(search_blocklist_mode, member)
+                    print('デフォルト処理されました')
 
             else:
                 print('ブロックリストじゃないよ')
