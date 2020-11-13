@@ -148,10 +148,10 @@ def check_database():
     if os.path.exists('./tmp/dummy'):
         print('\r' + f'[main/INFO] tmpのチェック に成功')
     else:
-        mycursor.execute('DROP DATABASE default_discord')
+        mycursor.execute('DROP DATABASE IF EXISTS default_discord')
         mycursor.execute('CREATE DATABASE default_discord')
 
-        mycursor.execute('DROP DATABASE discord_blogwar')
+        mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
         mycursor.execute('CREATE DATABASE discord_blogwar')
 
         with open('./tmp/dummy', mode='x') as f:
