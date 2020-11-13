@@ -91,12 +91,25 @@ async def db_insert(sql, val):
     mycursor.execute(sql, val)
     mydb.commit()
 
-
-async def db_search(table_name, table_column, where_condition):
+async def db_get_auto_increment():
     mycursor.execute(
-        f'SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1')
+        f'SELECT last_insert_id();')
     myresult = mycursor.fetchall()
-    return myresult
+    result = await db_reformat(myresult, 2)
+    return result
+
+
+async def db_search(table_name, table_column, where_condition, *args):
+    if not args:
+        mycursor.execute(
+            f'SELECT {table_name} FROM {table_column} WHERE {where_condition}')
+        myresult = mycursor.fetchall()
+        return myresult
+    else:
+        mycursor.execute(
+            f'SELECT {args}')
+        myresult = mycursor.fetchall()
+        return myresult
 
 
 async def db_reformat(myresult, type):
@@ -144,33 +157,31 @@ def check_database():
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
 
-mycursor.execute('USE default_discord')
+    mycursor.execute('USE default_discord')
 
-# discord_reaction_data を作る
-database_table_list_load = json_load("./template/database_table.json")
+    # discord_reaction_data を作る
+    database_table_list_load = json_load("./template/database_table.json")
 
-for x in database_table_list_load:
-    if f'{x}' == 'delete':
-        for n in database_table_list_load[x]['table']:
-            get_table_name = database_table_list_load[f'{x}']['table'][f'{n}']
-            sql = (f'DROP TABLE IF EXISTS {get_table_name}')
-            mycursor.execute(sql)
-    elif f'{x}' == 'create':
-        for n in database_table_list_load[f'{x}']['table']:
-            set_column = ""
-            for i in database_table_list_load[f'{x}']['table'][f'{n}']['column']:
-                get_column = database_table_list_load[f'{x}']['table'][f'{n}']['column'][f'{i}']
-                set_column += get_column + ', '
-            mycursor.execute(
-                f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
-
-
+    for x in database_table_list_load.keys():
+        if f'{x}' == 'delete':
+            for n in database_table_list_load[x]['table']:
+                get_table_name = database_table_list_load[f'{x}']['table'][f'{n}']
+                sql = (f'DROP TABLE IF EXISTS {get_table_name}')
+                mycursor.execute(sql)
+        elif f'{x}' == 'create':
+            for n in database_table_list_load[f'{x}']['table']:
+                set_column = ""
+                for i in database_table_list_load[f'{x}']['table'][f'{n}']['column']:
+                    get_column = database_table_list_load[f'{x}']['table'][f'{n}']['column'][f'{i}']
+                    set_column += get_column + ', '
+                mycursor.execute(
+                    f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
 
 
 class ssm(commands.Bot):
 
-    def __init__(self, command_prefix):
-        super().__init__(command_prefix)
+    def __init__(self, command_prefix, intents):
+        super().__init__(command_prefix, help_command=None, description=None, intents=intents)
 
         for cog in INITIAL_EXTENSIONS:
             try:
@@ -243,5 +254,7 @@ if __name__ == '__main__':
                    })
     spinner.start()
 
-    bot = ssm(command_prefix=f'{bot_prefix}')
+    intents = discord.Intents.all()
+
+    bot = ssm(command_prefix=f'{bot_prefix}', intents=intents)
     bot.run(f'{bot_token}')
