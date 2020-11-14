@@ -25,6 +25,8 @@ db_password = config_ini['DATABASE']['Password']
 db_default_database = config_ini['DATABASE']['Default_Database']
 db_blogwar_database = config_ini['DATABASE']['BlogWar_Database']
 
+reset_status = config_ini['RESET']['Status']
+
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
 mydb = mysql.connector.connect(
@@ -43,8 +45,7 @@ INITIAL_EXTENSIONS = [
     'cogs.basiccog',
     'cogs.blocklistcog',
     'cogs.modpackcog',
-    'cogs.hostlabcog',
-    'cogs.basic_bgwcog'
+    'cogs.hostlabcog'
 ]
 
 
@@ -92,27 +93,43 @@ async def db_insert(sql, val):
     mycursor.execute(sql, val)
     mydb.commit()
 
-
-async def db_search(table_name, table_column, where_condition):
+async def db_get_auto_increment():
     mycursor.execute(
-        f'SELECT {table_name} FROM {table_column} WHERE {where_condition} LIMIT 1')
+        f'SELECT last_insert_id();')
     myresult = mycursor.fetchall()
-    return myresult
+    result = await db_reformat(myresult, 2)
+    return result
+
+
+async def db_search(table_name, table_column, where_condition, *args):
+    if not args:
+        mycursor.execute(
+            f'SELECT {table_name} FROM {table_column} WHERE {where_condition}')
+        myresult = mycursor.fetchall()
+        return myresult
+    else:
+        mycursor.execute(
+            f'SELECT {args}')
+        myresult = mycursor.fetchall()
+        return myresult
 
 
 async def db_reformat(myresult, type):
-    for x in myresult:
-        reformat = "".join(map(str, x))
-    if type == 0:
-        return myresult
-    elif type == 1:
-        return str(reformat)
-    elif type == 2:
-        return int(reformat)
-    elif type == 3:
-        return float(reformat)
-    elif type == 4:
-        return list(reformat)
+    if len(myresult) > 0 :
+        for x in myresult:
+            reformat = "".join(map(str, x))
+        if type == 0:
+            return myresult
+        elif type == 1:
+            return str(reformat)
+        elif type == 2:
+            return int(reformat)
+        elif type == 3:
+            return float(reformat)
+        elif type == 4:
+            return list(reformat)
+    else:
+        return None
 
 
 async def db_delete(table_column, where_condition, adr):
@@ -128,39 +145,47 @@ def json_load(path):
     json_load = json.load(json_open)
     return json_load
 
+def create_default_table():
+    mycursor.execute('USE default_discord')
+
+    # discord_reaction_data を作る
+    database_table_list_load = json_load("./template/database_table.json")
+
+    for x in database_table_list_load.keys():
+        if f'{x}' == 'delete':
+            for n in database_table_list_load[x]['table']:
+                get_table_name = database_table_list_load[f'{x}']['table'][f'{n}']
+                sql = (f'DROP TABLE IF EXISTS {get_table_name}')
+                mycursor.execute(sql)
+        elif f'{x}' == 'create':
+            for n in database_table_list_load[f'{x}']['table']:
+                set_column = ""
+                for i in database_table_list_load[f'{x}']['table'][f'{n}']['column']:
+                    get_column = database_table_list_load[f'{x}']['table'][f'{n}']['column'][f'{i}']
+                    set_column += get_column + ', '
+                mycursor.execute(
+                    f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
+
 
 def check_database():
     if os.path.exists('./tmp/dummy'):
         print('\r' + f'[main/INFO] tmpのチェック に成功')
     else:
-        mycursor.execute('DROP DATABASE default_discord')
+        mycursor.execute('DROP DATABASE IF EXISTS default_discord')
         mycursor.execute('CREATE DATABASE default_discord')
 
-        mycursor.execute('DROP DATABASE discord_blogwar')
+        mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
         mycursor.execute('CREATE DATABASE discord_blogwar')
-
-        mycursor.execute('USE default_discord')
-
-        database_table_list_load = json_load("./template/database_table.json")
-
-        print(database_table_list_load['table']['discord_sub_block_list']['column']['1'])
-
-        for x in database_table_list_load['table']:
-            set_column = ""
-            for i in database_table_list_load['table'][f'{x}']['column']:
-                get_column = database_table_list_load['table'][f'{x}']['column'][f'{i}']
-                set_column += get_column + ', '
-            mycursor.execute(
-                f'CREATE TABLE {x} ({set_column[:-2]})')
 
         with open('./tmp/dummy', mode='x') as f:
             f.write('')
 
+    create_default_table()
 
 class ssm(commands.Bot):
 
-    def __init__(self, command_prefix):
-        super().__init__(command_prefix)
+    def __init__(self, command_prefix, intents):
+        super().__init__(command_prefix, help_command=None, description=None, intents=intents)
 
         for cog in INITIAL_EXTENSIONS:
             try:
@@ -170,14 +195,6 @@ class ssm(commands.Bot):
 
     async def on_ready(self):
         check_database()
-        # discord_reaction_data を消す
-        sql = "DROP TABLE IF EXISTS discord_reaction"
-
-        mycursor.execute(sql)
-
-        # discord_reaction_data を作る
-        mycursor.execute(
-            'CREATE TABLE discord_reaction (channel_id VARCHAR(255), message_id VARCHAR(255), user_id VARCHAR(255), command VARCHAR(255), mode VARCHAR(255), original_message_id VARCHAR(255))')
         spinner.stop()
         print('--------------------------------')
         print(self.user.name)
@@ -214,7 +231,7 @@ class ssm(commands.Bot):
         print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
         await bot.process_commands(ctx)
 
-    async def on_command_error(self, ctx, error):
+"""    async def on_command_error(self, ctx, error):
         if isinstance(error, CommandNotFound):
             await ctx.send('存在しないコマンドです')
             return 1
@@ -231,7 +248,7 @@ class ssm(commands.Bot):
                 embed.add_field(name='エラー内容', value=error, inline=True)
                 m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
                 await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
-
+"""
 
 if __name__ == '__main__':
     spinner = Halo(text='Loading Now',
@@ -241,5 +258,7 @@ if __name__ == '__main__':
                    })
     spinner.start()
 
-    bot = ssm(command_prefix=f'{bot_prefix}')
+    intents = discord.Intents.all()
+
+    bot = ssm(command_prefix=f'{bot_prefix}', intents=intents)
     bot.run(f'{bot_token}')
