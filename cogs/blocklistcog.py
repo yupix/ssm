@@ -22,13 +22,14 @@ async def blog_reaction(reaction, reformat_mode, user, msg, reformat_check_react
         embed_sub_title = 'サーバーに平和が訪れることを祈ります'
 
         cancele_embed_title = f'{user.name} さんのブロックリスト登録をキャンセルしました'
-        cancele_embed_title = '平和が一番ですよね♪'
+        cancele_embed_sub_title = '平和が一番ですよね♪'
 
     elif reformat_mode == '1':
         embed_title = f'{user.name} さんのブロックリストを解除しました'
         embed_sub_title = '問題が発生しないことを祈ります'
+
         cancele_embed_title = f'{user.name} さんのブロックリスト解除をキャンセルしました'
-        cancele_embed_title = '無理に解除する必要性はありません！'
+        cancele_embed_sub_title = '無理に解除する必要性はありません！'
 
     embed_color = 0x8bc34a
     if reaction.emoji == '✅':
@@ -62,7 +63,7 @@ async def blog_reaction(reaction, reformat_mode, user, msg, reformat_check_react
         await db_delete('reactions', 'message_id = %s', f'{msg.guild.id}')  # embedのデータを削除
     elif reaction.emoji == '✖':
         embed = discord.Embed(title=cancele_embed_title,
-                              description=cancele_embed_title, color=embed_color)
+                              description=cancele_embed_sub_title, color=embed_color)
         await msg.edit(embed=embed)
         await db_delete('reactions', 'message_id = %s', f'{reformat_check_reaction}')
 
