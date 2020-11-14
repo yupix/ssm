@@ -13,6 +13,14 @@ from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, 
     db_insert
 
 
+async def blog_informations(ctx):
+    search_blog_id = await db_reformat(await db_search('blog_id', 'blog_server', f'server_id = {ctx.guild.id}'), 2)  # blog_idを取得
+    search_server_id = await db_reformat(await db_search('server_id', 'blog_server', f'server_id = {ctx.guild.id}'), 2)  # server_idを取得
+    search_category_id = await db_reformat(await db_search('category_id', 'blog_category', f'category_id = {ctx.channel.category.id}'), 2)  # category_idを取得
+    search_channel_id = await db_reformat(await db_search('channel_id', 'blog_channel', f'channel_id = {ctx.channel.id}'), 2)  # channel_idを取得
+
+    return search_blog_id, search_server_id, search_category_id, search_channel_id
+
 async def blog_level_system(ctx, execution_user_id, type):
     if type == 0:
         info_table_name = 'blog_sub_info'
@@ -172,46 +180,38 @@ class BlogCog(commands.Cog):
                              f'登録されていないカテゴリです。\n```{bot_prefix}blogcategory register```を実行してください')
 
     @blog.command(name='register')
-    async def _register(self, ctx):
-        db_search_category_id = await db_search('category_id', 'blog_main_info',
-                                                f'category_id = {ctx.channel.category.id}')
-        if len(db_search_category_id) == 1:
-            db_search_channel_id = await db_search('channel_id', 'blog_sub_info',
-                                                   f'channel_id = {ctx.channel.id}')
+    async def _register(self, ctx):  # TODO:2020/11/13/ 自動生成を楽にするための機構を追加する
+        search_blog_id, blog_server_id, blog_category_id, blog_channel_id = await blog_informations(ctx)
+        print(blog_category_id)
+        if blog_category_id:  # 既にカテゴリが登録されてるか
+            if blog_channel_id is None:  # 既にチャンネルが登録されてるか
+                date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 登録日時用
+                mycursor.execute(f'INSERT INTO blogs (created_at) VALUES (\'{date}\')')
+                sql_list = {
+                    0: {
+                        'table_name': 'blog_detail',
+                        'sql': 'INSERT INTO blog_detail (blog_id, blog_channel, total_post) VALUES (%s, %s, %s)',
+                        'val': (f'{search_blog_id}', f'{ctx.channel.id}', f'{ctx.author.id}', 0)
+                    },
+                    1: {
+                        'table_name': 'blog_user_detail',
+                        'sql': 'INSERT INTO blog_user_detail (blog_id, channel_id, user_id, total_post) VALUES (%s, %s, %s, %s)',
+                        'val': (f'{search_blog_id}', f'{ctx.channel.id}', f'{ctx.author.id}', 0)
+                    }
+                }
 
-            search_main_info_insert_id = await db_reformat(
-                await db_search('id', 'blog_main_info', f'category_id = {ctx.channel.category.id}'), 1) #
-            # データベースから挿入されたidを取得し、文字型を変更
 
-            if len(db_search_channel_id) == 0:
-                sql = "INSERT INTO blog_sub_info (main_info_insert_id, channel_id, embed_color, number_of_posts) VALUES (%s, %s, %s, %s)"
-                embed_color_list = [5620992, 16088855, 16056193, 9795021]
-                print(random.choice(embed_color_list))
-                val = (f'{search_main_info_insert_id}', f'{ctx.channel.id}', random.choice(embed_color_list), 0)
-                await db_insert(sql, val)
+                for main_key in sql_list.keys():
+                    table_name = sql_list[main_key]['table_name']
+                    sql = sql_list[main_key]['sql']
+                    val = sql_list[main_key]['val']
+                    print(sql % val)
+                    await db_insert(sql, val)
 
-                db_search_insert_id = await db_search('id', 'blog_sub_info',
-                                                      f'channel_id = {ctx.channel.id}')
-                reformat_db_search_insert_id = await db_reformat(db_search_insert_id, 1)
+                    #await db_update('blog_detail', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
 
-                # 実行したユーザーの基本情報を設定
-                sql = "INSERT INTO private_blog_user (channel_insert_id, user_id, number_of_posts, role) VALUES (%s, %s, %s, %s)"
-                val = (f'{reformat_db_search_insert_id}', f'{ctx.author.id}', 0, 'owner')
-                await db_insert(sql, val)
+                """
 
-                # チャンネルのレベルに関する初期情報を設定
-                sql = "INSERT INTO blog_channel_xp (channel_insert_id, xp, level) VALUES (%s, %s, %s)"
-                val = (f'{reformat_db_search_insert_id}', 0, 1)
-                await db_insert(sql, val)
-
-                db_search_user_insert_id = await db_search('id', 'private_blog_user',
-                                                           f'user_id = {ctx.author.id}')
-                reformat_db_search_user_insert_id = await db_reformat(db_search_user_insert_id, 1)
-
-                # 登録を実行したユーザーのレベルに関する初期情報を設定
-                sql = "INSERT INTO private_blog_user_xp (channel_insert_id, user_insert_id, xp, level) VALUES (%s, %s, %s, %s)"
-                val = (f'{reformat_db_search_insert_id}', f'{reformat_db_search_user_insert_id}', 0, 1)
-                await db_insert(sql, val)
 
                 member = await ctx.guild.fetch_member(ctx.author.id)
                 role_id = await db_search('role', 'blog_main_info',
@@ -223,7 +223,7 @@ class BlogCog(commands.Cog):
                     await member.add_roles(role)
                     await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
                 else:
-                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しましたが権限が設定されていなかったため自動付与されていません!')
+                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しましたが権限が設定されていなかったため自動付与されていません!')"""
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているチャンネルです')
         else:
