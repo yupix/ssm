@@ -52,8 +52,9 @@ async def blog_reaction(reaction, reformat_mode, user, msg, reformat_check_react
             await db_insert(sql, val)
 
         elif reformat_mode == '1':
-            sql = f'DELETE FROM discord_sub_block_list WHERE server_id = %s AND user_id = %s'
-            adr = (msg.guild.id, user.id,)
+            search_blocklist_id = await db_reformat(await db_search('block_id', 'blocklist_user', f'server_id = {msg.guild.id} AND user_id = {user.id}'), 2)  # blocklist_idを取得
+            sql = f'DELETE FROM blocklists WHERE id = %s'
+            adr = (search_blocklist_id,)
             mycursor.execute(sql, adr)
 
             mydb.commit()
@@ -140,6 +141,36 @@ class BlocklistCog(commands.Cog):
                 await embed_send(ctx, self.bot, 1, 'エラー', f'サーバーが登録されていません。\n`{bot_prefix}blocklist register mode role`\nを実行した後に再度実行してください。')
 
     @blocklist.command()
+    async def remove(self, ctx, user_id):
+        if ctx.author.guild_permissions.administrator:
+            try:
+                user = await self.bot.fetch_user(user_id)
+                search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id = await blocklist_informations(ctx, user)
+
+                if search_blocklist_user_id:
+                    embed = discord.Embed(title=f"{user.name} をブロックリストから解除しますか？",
+                                          description="最後にもう一度、本当に解除しても問題ないですか？\n問題が無いようなら✅を押してください。", color=0xffc629)
+                    msg = await ctx.send(embed=embed)
+                    await msg.add_reaction('✅')
+                    await msg.add_reaction('✖')
+
+                    sql = "INSERT INTO reactions (message_id) VALUES (%s)"
+                    val = (msg.id,)
+                    await db_insert(sql, val)
+
+                    search_reaction_id = await db_reformat(await db_search('id', 'reactions', f'message_id = {msg.id}'), 2)
+
+                    sql = "INSERT INTO blocklist_reaction (reaction_id, server_id, channel_id, user_id, command, mode, block_mode) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                    val = (search_reaction_id, msg.guild.id, msg.channel.id, user.id, 'blocklist', 1, f'None')
+                    await db_insert(sql, val)
+                else:
+                    await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないユーザーです')
+            except NotFound:
+                await embed_send(ctx, self.bot, 1, 'エラー', '存在しないユーザーです')
+            except HTTPException:
+                await embed_send(ctx, self.bot, 1, 'エラー', '取得時にエラーが発生しました')
+
+    @blocklist.command()
     async def list(self, ctx):
         if ctx.author.guild_permissions.administrator:
             search_block_id = await db_search('block_id', 'blocklist_user', f'server_id = {ctx.guild.id}')
@@ -154,32 +185,6 @@ class BlocklistCog(commands.Cog):
             print(f'{search_block_id}', f'{search_user_id}')
         else:
             await ctx.send('このコマンドには管理者必須やで')
-
-    @blocklist.command()
-    async def remove(self, ctx, user_id):
-        if ctx.author.guild_permissions.administrator:
-            try:
-                user = await self.bot.fetch_user(user_id)
-                search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id = await blocklist_informations(ctx, user)
-
-                if search_blocklist_user_id:
-                    embed = discord.Embed(title=f"{user.name} をブロックリストから解除しますか？",
-                                          description="最後にもう一度、本当に解除しても問題ないですか？\n問題が無いようなら✅を押してください。", color=0xffc629)
-                    msg = await ctx.send(embed=embed)
-                    await msg.add_reaction('✅')
-                    await msg.add_reaction('✖')
-
-                    sql = "INSERT INTO blocklist_reaction (channel_id, message_id, user_id, command, mode) VALUES (%s, %s, %s, %s, %s)"
-                    val = (msg.channel.id, msg.id, user.id, 'blocklist', 1)
-                    mycursor.execute(sql, val)
-
-                    mydb.commit()
-                else:
-                    await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないユーザーです')
-            except NotFound:
-                await embed_send(ctx, self.bot, 1, 'エラー', '存在しないユーザーです')
-            except HTTPException:
-                await embed_send(ctx, self.bot, 1, 'エラー', '取得時にエラーが発生しました')
 
 
 def setup(bot):
