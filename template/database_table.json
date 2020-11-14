@@ -106,8 +106,9 @@
           "1": "block_id INTEGER",
           "2": "server_id BIGINT",
           "3": "user_id BIGINT PRIMARY KEY",
-          "4": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists(id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "5": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+          "4": "mode VARCHAR(255)",
+          "5": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists(id) ON DELETE CASCADE ON UPDATE CASCADE",
+          "6": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
         }
       },
       "reactions": {
@@ -125,7 +126,8 @@
           "4": "user_id BIGINT",
           "5": "command varchar(100)",
           "6": "mode INT",
-          "7": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES default_discord.reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
+          "7": "block_mode varchar(255)",
+          "8": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES default_discord.reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
         }
       }
     }
