@@ -5,13 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- block list user-specific processing.
+
 ### Changed
-- Supports Gateway Intents from discord.py 1.5
-- Change Database Table structure from
+- Change Database Table structure.
 
 ### Deprecated
 - Remove the hostlab command in the future.
 
+### Fixed
+- don't working block list system.
+  - Supports Gateway Intents from discord.py 1.5.
 
 ## 1.0.0 - 2020-11-14
 ### Added
