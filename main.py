@@ -2,6 +2,7 @@ import json
 import os
 import urllib
 
+import coloredlogs
 import discord
 import mysql.connector
 import traceback
@@ -10,6 +11,7 @@ import configparser
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from halo import Halo
+from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 
 config_ini = configparser.ConfigParser()
 config_ini.read('config.ini', encoding='utf-8')
@@ -27,8 +29,58 @@ db_blogwar_database = config_ini['DATABASE']['BlogWar_Database']
 
 reset_status = config_ini['RESET']['Status']
 
-
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
+
+# --------------------------------
+# 1.loggerの設定
+# --------------------------------
+# loggerオブジェクトの宣言
+logger = getLogger(__name__)
+
+# loggerのログレベル設定(ハンドラに渡すエラーメッセージのレベル)
+logger.setLevel(DEBUG)
+
+# --------------------------------
+# 2.handlerの設定
+# --------------------------------
+# handlerの生成
+stream_handler = StreamHandler()
+
+# handlerのログレベル設定(ハンドラが出力するエラーメッセージのレベル)
+stream_handler.setLevel(DEBUG)
+
+# --------------------------------
+# 3.loggerにhandlerをセット
+# --------------------------------
+logger.addHandler(stream_handler)
+logger.propagate = False
+
+coloredlogs.CAN_USE_BOLD_FONT = True
+coloredlogs.DEFAULT_FIELD_STYLES = {'asctime': {'color': 'green'},
+                                    'hostname': {'color': 'magenta'},
+                                    'levelname': {'color': 'black', 'bold': True},
+                                    'name': {'color': 'blue'},
+                                    'programname': {'color': 'cyan'}
+                                    }
+coloredlogs.DEFAULT_LEVEL_STYLES = {'critical': {'color': 'red', 'bold': True},
+                                    'error': {'color': 'red'},
+                                    'warning': {'color': 'yellow'},
+                                    'notice': {'color': 'magenta'},
+                                    'info': {'color': 'green'},
+                                    'debug': {},
+                                    'spam': {'color': 'green', 'faint': True},
+                                    'success': {'color': 'green', 'bold': True},
+                                    'verbose': {'color': 'blue'}
+                                    }
+
+coloredlogs.install(level='DEBUG', logger=logger, fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+
+# SUCCESSを追加
+logger.SUCCESS = 25 # WARNINGとINFOの間
+addLevelName(logger.SUCCESS, 'SUCCESS')
+setattr(logger, 'success', lambda message, *args: logger._log(logger.SUCCESS, message, args))
+
+
 mydb = mysql.connector.connect(
     host=f'{db_host}',
     port=f'{db_port}',
@@ -77,7 +129,7 @@ async def embed_send(ctx, bot, type, title, subtitle):
         embed_color = 0x8bc34a
     elif type == 1:  # エラー発生時
         embed_color = 0xd32f2f
-    print(f'{type}, {title}, {subtitle}')
+    logger.debug(f'{type}, {title}, {subtitle}')
     embed = discord.Embed(title=f'{title}', description=f'{subtitle}', color=embed_color)
     m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
     return m
@@ -169,7 +221,7 @@ def create_default_table():
 
 def check_database():
     if os.path.exists('./tmp/dummy'):
-        print('\r' + f'[main/INFO] tmpのチェック に成功')
+        logger.success('tmpのチェック に成功')
     else:
         mycursor.execute('DROP DATABASE IF EXISTS default_discord')
         mycursor.execute('CREATE DATABASE default_discord')
@@ -228,7 +280,8 @@ class ssm(commands.Bot):
                 return 1
 
         """
-        print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
+        logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
+        #print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
         await bot.process_commands(ctx)
 
 """    async def on_command_error(self, ctx, error):
