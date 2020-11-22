@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Change Database Table structure.
 - use environment variable a config.
 
-### Deprecated
-- Remove the hostlab command in the future.
+### Removed
+- Removed hostlab command.
+- Removed basic_bwgcog cog.
 
 ### Fixed
 - don't working block list system.
