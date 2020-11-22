@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - block list user-specific processing.
+- read out the users who participated in the voice chat.
 
 ### Changed
 - Change Database Table structure.
+- use environment variable a config.
 
 ### Deprecated
 - Remove the hostlab command in the future.
