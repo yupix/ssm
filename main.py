@@ -13,7 +13,7 @@ from discord.ext.commands import CommandNotFound
 from halo import Halo
 from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 
-config_ini = configparser.ConfigParser()
+config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('config.ini', encoding='utf-8')
 
 bot_user = config_ini['DEFAULT']['User']
@@ -25,11 +25,16 @@ db_port = config_ini['DATABASE']['Port']
 db_host = config_ini['DATABASE']['Host']
 db_password = config_ini['DATABASE']['Password']
 db_default_database = config_ini['DATABASE']['Default_Database']
-db_blogwar_database = config_ini['DATABASE']['BlogWar_Database']
 
 reset_status = config_ini['RESET']['Status']
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
+
+Dic_Path = config_ini['JTALK']['Dic_Path']
+Voice_Path = config_ini['JTALK']['Voice_Path']
+Jtalk_Bin_Path = config_ini['JTALK']['Jtalk_Bin_Path']
+Output_wav_name = config_ini['JTALK']['Output_wav_name']
+Spped = config_ini['JTALK']['Spped']
 
 # --------------------------------
 # 1.loggerの設定
@@ -97,7 +102,8 @@ INITIAL_EXTENSIONS = [
     'cogs.basiccog',
     'cogs.blocklistcog',
     'cogs.modpackcog',
-    'cogs.hostlabcog'
+    'cogs.hostlabcog',
+    'cogs.read'
 ]
 
 

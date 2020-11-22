@@ -1,10 +1,13 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 from discord.utils import get
 
 from cogs.blocklistcog import blog_reaction
 from cogs.modpackcog import modpack_reaction
-from main import db_search, db_reformat, mycursor, mydb, db_update, json_load, bot_prefix
+from main import db_search, db_reformat, mycursor, mydb, db_update, json_load, bot_prefix, logger, Output_wav_name
+from modules.voice_generator import creat_wav
 
 """利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト
 async def basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg):
@@ -114,8 +117,22 @@ class BasicCog(commands.Cog):
                     print(f'{role.name}')
                     await member.add_roles(role)
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        if before.channel is None:
+            logger.debug(f'{member.name} さんがボイスチャンネル {after.channel.name} に参加しました')
+            creat_wav(f'{member.name} さんがボイスチャンネルに参加しました')
+        elif after.channel is None:
+            logger.debug(f'{member.name} さんがボイスチャンネル {before.channel.name} から退出しました')
+            creat_wav(f'{member.name} さんがボイスチャンネルから退出しました')
 
-        # reformat_check_reaction = await db_reformat(check_reaction, 1)
+        if before.channel is None or after.channel is None:
+            source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
+            while True:
+                if member.guild.voice_client.is_playing() is False:
+                    member.guild.voice_client.play(source)
+                    break
+                await asyncio.sleep(3)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
