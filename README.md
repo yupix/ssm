@@ -4,9 +4,13 @@
 
 ## 注意
 
-このブランチがtestingの場合は絶対に本番環境で動かさないでください！
-理由はこのブランチは現在大幅な変更を加えており、まだ直しきれていなくてもpushして少しでも変更を分かりやすくするために
-作成しているものです。このブランチを使うことで発生した問題などは一切対応しないのでご注意ください。
+このProjectを使用する場合はmasterブランチを使用することを強く推奨します。
+masterブランチはtestingブランチがある程度安定したと判断した際にのみ更新され、
+基本的にtestingブランチは不安定な状態の機能や作りかけの機能が大量にあるため開発者や、新機能を試す以外では絶対に使わないでください。
+
+## このREADMEに関する注意点
+
+コマンドなどに関してはほとんどが未完成品であり、編集仕立ての場合、
 
 ## 概要
 
@@ -14,21 +18,15 @@
 このProjectは[AGPL](LICENSE)ライセンスのもと配布または使用することができます
 
 ## 使い方
+open-jtalkが別途必要です
 
 ```
 #MAIN REPOSITORY
-git clone https://lab.akarinext.org/yupix/ssm.git
-
-#SUB REPOSITORY 
-git clone https://lab.akirin.xyz/yupix/ssm.git
+git clone https://github.com/yupix/ssm.git
 
 
 cd ssm
 python main.py
-
-#ブログでの権限をインポート(必須)
-db_user='root' # データベースのユーザー名に指定してください
-mysql -u ${db_user} -p -h localhost default_discord < ./template/role.txt'
 ```
 
 ## CONFIG
@@ -36,6 +34,16 @@ mysql -u ${db_user} -p -h localhost default_discord < ./template/role.txt'
 ### COMMAND
 
 基本的にコマンドの使用可能かいなかはサーバー毎に設定できるべきであり何らかの理由で自分のBotが入ってるサーバーで特定のコマンドをoffにすることができます  
+
+#### コマンド一覧
+
+コマンドの前にはtu!などのprefixが必要です。 例: `tu!ping`  
+%user_id%はユーザーを右クリックで取得可能なid(開発者モードon必須かも)
+
+
+| コマンド名 | 使い方|
+|---|---|
+|blocklist add %user_id%|指定したユーザーをブロックリストに登録します。|
 
 #### 値に関して
 
@@ -46,10 +54,3 @@ mysql -u ${db_user} -p -h localhost default_discord < ./template/role.txt'
 | コマンド名 | デフォルト値 |
 |---|---|
 |blogcategory|true|
-
-## REPOSITORY構造
-
-- [MAIN Repository](https://lab.akarinext.org/yupix/ssm)
-- [SUB Repository](https://lab.akirin.xyz/yupix/ssm)
-- [BACKUP Repository](https://github.com/yupix/ssm)
-
