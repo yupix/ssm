@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+  - None
+
+## [1.0.1] - 2020 12-05
+### Added
 - block list user-specific processing.
 - read out the users who participated in the voice chat.
 - add note and pso2 command 
@@ -32,3 +36,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - general system.
 
 [Unreleased]: https://github.com/yupix/ssm/compare/testing...HEAD
+[1.0.1]: https://github.com/yupix/ssm/compare/v1.0.1...v1.0.0
+
