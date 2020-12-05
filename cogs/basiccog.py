@@ -119,20 +119,31 @@ class BasicCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        logger.debug(f'{member.id}, {self.bot.user.id}')
+        if member.id == self.bot.user.id:
+            return
+        elif member.bot:
+            input_text = 'ボット: '
+        else:
+            input_text = 'ユーザー: '
+
         if before.channel is None:
             logger.debug(f'{member.name} さんがボイスチャンネル {after.channel.name} に参加しました')
-            creat_wav(f'{member.name} さんがボイスチャンネルに参加しました')
+            creat_wav(input_text + f'{member.name} さんがボイスチャンネルに参加しました')
         elif after.channel is None:
             logger.debug(f'{member.name} さんがボイスチャンネル {before.channel.name} から退出しました')
-            creat_wav(f'{member.name} さんがボイスチャンネルから退出しました')
+            creat_wav(input_text + f'{member.name} さんがボイスチャンネルから退出しました')
 
         if before.channel is None or after.channel is None:
             source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
             while True:
-                if member.guild.voice_client.is_playing() is False:
-                    member.guild.voice_client.play(source)
+                if member.guild.voice_client:
+                    if member.guild.voice_client.is_playing() is False:
+                        member.guild.voice_client.play(source)
+                        break
+                    await asyncio.sleep(3)
+                else:
                     break
-                await asyncio.sleep(3)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
