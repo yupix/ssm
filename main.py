@@ -18,6 +18,9 @@ from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('config.ini', encoding='utf-8')
+config = configparser.ConfigParser()
+config.read('config.ini', encoding='utf-8')
+
 
 bot_user = config_ini['DEFAULT']['User']
 bot_prefix = config_ini['DEFAULT']['Prefix']
@@ -244,17 +247,17 @@ def create_default_table():
 
 
 def check_database():
-    if os.path.exists('./tmp/dummy'):
-        logger.success('tmpのチェック に成功')
+    print(reset_status)
+    if f'{reset_status}' == '1':
+        logger.info('データベースの初期化確認に成功')
     else:
+        logger.info('データベースを初期化中です...')
         mycursor.execute('DROP DATABASE IF EXISTS default_discord')
         mycursor.execute('CREATE DATABASE default_discord')
 
-        #mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
-        #mycursor.execute('CREATE DATABASE discord_blogwar')
-
-        with open('./tmp/dummy', mode='x') as f:
-            f.write('')
+        config.set('RESET', 'Status', '1')
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
 
     create_default_table()
 
