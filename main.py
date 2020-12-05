@@ -117,7 +117,8 @@ INITIAL_EXTENSIONS = [
     'cogs.hostlabcog',
     'cogs.read',
     'cogs.note',
-    'cogs.emoji'
+    'cogs.emoji',
+    'cogs.pso2'
 ]
 
 
