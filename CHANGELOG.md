@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - block list user-specific processing.
 - read out the users who participated in the voice chat.
+- add note and pso2 command 
+- docker-compose enabled
 
 ### Changed
 - Change Database Table structure.
