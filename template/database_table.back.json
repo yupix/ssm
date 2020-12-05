@@ -1,0 +1,99 @@
+{
+  "table": {
+    "blog_main_info": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "server_id VARCHAR(255)",
+        "3": "category_id VARCHAR(255)",
+        "4": "blog_reply_channel VARCHAR(255)",
+        "5": "blog_reply_webhook_url VARCHAR(255)",
+        "6": "role VARCHAR(255)",
+        "7": "index(id)"
+      }
+    },
+    "blog_sub_info": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "main_info_insert_id VARCHAR(255)",
+        "3": "channel_id VARCHAR(255)",
+        "4": "embed_color VARCHAR(255)",
+        "5": "number_of_posts VARCHAR(255)",
+        "6": "index(id)"
+      }
+    },
+    "private_blog_user": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "channel_insert_id VARCHAR(255)",
+        "3": "user_id VARCHAR(255)",
+        "4": "number_of_posts VARCHAR(255)",
+        "5": "role VARCHAR(255)",
+        "6": "index(id)"
+      }
+    },
+    "blog_channel_xp": {
+      "column": {
+        "1": "channel_insert_id VARCHAR(255)",
+        "2": "xp VARCHAR(255)",
+        "3": "level VARCHAR(255)",
+        "4": "saved_levelup_xp VARCHAR(255)"
+      }
+    },
+    "private_blog_user_xp": {
+      "column": {
+        "1": "channel_insert_id VARCHAR(255)",
+        "2": "user_insert_id VARCHAR(255)",
+        "3": "xp VARCHAR(255)",
+        "4": "level VARCHAR(255)",
+        "5": "saved_levelup_xp VARCHAR(255)"
+      }
+    },
+    "discord_blog_user_info": {
+      "column": {
+        "1": "channel_id VARCHAR(255)",
+        "2": "last_logind VARCHAR(255)",
+        "3": "number_logins VARCHAR(255)",
+        "4": "total_login VARCHAR(255)"
+      }
+    },
+    "discord_main_block_list": {
+      "column": {
+        "1": "server_id VARCHAR(255)",
+        "2": "role VARCHAR(255)",
+        "3": "cooperation VARCHAR(255)"
+      }
+    },
+    "discord_sub_block_list": {
+      "column": {
+        "1": "server_id VARCHAR(255)",
+        "2": "user_id VARCHAR(255)",
+        "3": "count VARCHAR(255)"
+      }
+    },
+    "discord_modpack_main_info": {
+      "column":{
+        "1": "id int auto_increment",
+        "2": "author_id VARCHAR(255)",
+        "3": "pack_name VARCHAR(255)",
+        "4": "pack_mc_version VARCHAR(255)",
+        "5": "index(id)"
+      }
+    },
+    "discord_modpack_sub_info": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "pack_description VARCHAR(255)",
+        "3": "pack_tags VARCHAR(255)",
+        "4": "index(id)"
+      }
+    },
+    "server_main_info": {
+      "column": {
+        "1": "id int auto_increment",
+        "2": "server_id VARCHAR(255)",
+        "3": "consent_status VARCHAR(255)",
+        "4": "index(id)"
+      }
+    }
+  }
+}

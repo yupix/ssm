@@ -1,3 +1,4 @@
+import datetime
 import math
 import random
 
@@ -8,7 +9,96 @@ import urllib.request
 import requests
 from discord.utils import get
 
-from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole
+from main import mycursor, mydb, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole, \
+    db_insert
+
+
+async def blog_informations(ctx):
+    search_blog_id = await db_reformat(await db_search('blog_id', 'blog_server', f'server_id = {ctx.guild.id}'), 2)  # blog_idを取得
+    search_server_id = await db_reformat(await db_search('server_id', 'blog_server', f'server_id = {ctx.guild.id}'), 2)  # server_idを取得
+    search_category_id = await db_reformat(await db_search('category_id', 'blog_category', f'category_id = {ctx.channel.category.id}'), 2)  # category_idを取得
+    search_channel_id = await db_reformat(await db_search('channel_id', 'blog_channel', f'channel_id = {ctx.channel.id}'), 2)  # channel_idを取得
+
+    return search_blog_id, search_server_id, search_category_id, search_channel_id
+
+async def blog_level_system(ctx, execution_user_id, type):
+    if type == 0:
+        info_table_name = 'blog_sub_info'
+        xp_info_table_name = 'blog_channel_xp'
+        channnel_insert_id_column = 'id'
+        default_levelup_xp = 7  # 基本レベルを設定
+    elif type == 1:
+        info_table_name = 'private_blog_user'
+        xp_info_table_name = 'private_blog_user_xp'
+        channnel_insert_id_column = 'channel_insert_id'
+        default_levelup_xp = 5  # 基本レベルを設定
+
+    ##
+    # 紐づけされているIDを各種取得
+    ##
+    search_main_info_insert_id = await db_reformat(await db_search('id', 'blog_main_info', f'category_id = {ctx.channel.category.id}'), 1)
+
+    if search_main_info_insert_id:
+
+        ##
+        # 紐づけされているIDを各種取得
+        ##
+        search_main_info_insert_id = await db_reformat(
+            await db_search('id', 'blog_main_info', f'category_id = {ctx.channel.category.id}'), 1)
+        search_sub_info_insert_id = await db_reformat(
+            await db_search('id', 'blog_sub_info', f'main_info_insert_id = {search_main_info_insert_id}'), 1)
+        search_private_blog_user_insert_id = await db_reformat(
+            await db_search('id', 'private_blog_user', f'channel_insert_id = {search_sub_info_insert_id}'), 1)
+
+        # 投稿数をデータベースから取得
+        search_info_table_number_of_posts = await db_reformat(await db_search('number_of_posts', f'{info_table_name}', f'{channnel_insert_id_column} = {ctx.channel.id} AND number_of_posts >= 0'), 1)
+
+        # 経験値をデータベースから取得
+        db_get_exp = await db_search('xp', f'{xp_info_table_name}', f'channel_insert_id = {search_sub_info_insert_id} AND xp >= 0')
+        reformat_xp = await db_reformat(db_get_exp, 1)
+        # レベルをデータベースから取得
+        db_get_level = await db_search('level', f'{xp_info_table_name}',
+                                       f'channel_insert_id = {search_sub_info_insert_id} AND level >= 0')
+        reformat_level = await db_reformat(db_get_level, 2)
+
+        if reformat_level == 1:
+            next_levelup_xp = float(default_levelup_xp * 1.1) + int(reformat_level * 2) / 2
+        else:
+            db_get_saved_levelup_xp = await db_search('saved_levelup_xp', f'{xp_info_table_name}',
+                                                      f'channel_id = {ctx.channel.id} AND saved_levelup_xp IS NOT NULL')
+            reformat_saved_levelup_xp = await db_reformat(db_get_saved_levelup_xp, 3)
+            print(reformat_saved_levelup_xp)
+            reformat_saved_levelup_xp = float(reformat_saved_levelup_xp)
+            next_levelup_xp = float(reformat_saved_levelup_xp * 1.1) + int(reformat_level * 2) / 2
+        rereformat_xp = int(reformat_xp) / 100
+        rereformat_xp = str(rereformat_xp)
+        rereformat_xp = rereformat_xp[:rereformat_xp.find('.')]
+
+        next_levelup_xp = str(next_levelup_xp)
+        next_levelup_xp = next_levelup_xp[:next_levelup_xp.find('.')]
+        print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{rereformat_xp}')
+        if int(rereformat_xp) >= int(next_levelup_xp):
+            val = (f"{next_levelup_xp}", f"{search_sub_info_insert_id}")
+            await db_update(f'{xp_info_table_name}', 'saved_levelup_xp = %s WHERE channel_insert_id = %s', val)
+
+            reformat_level = int(reformat_level) + 1
+            embed = discord.Embed(
+                title=f"レベルアップ!", color=0x8bc34a)
+            embed.add_field(name=f"blogのレベルが{reformat_level}に上がりました!", value=f"今後もblogでのご活躍をご期待しています!",
+                            inline=True)
+            await ctx.channel.send(embed=embed)
+            next_xp = '0'
+        else:
+            next_xp = int(reformat_xp) + + int(2) * 10
+            print(f'今回の発言後のxp(小数) {next_xp / 100}\n今回の発言後のxp(整数) {next_xp}')
+        next_number_of_posts = int(search_info_table_number_of_posts) + 1
+
+        val = (f"{int(next_xp)}", f"{reformat_level}", f"{search_sub_info_insert_id}")
+        await db_update(f'{xp_info_table_name}', 'xp = %s, level = %s WHERE channel_insert_id = %s', val)
+
+        val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
+        await db_update(f'{info_table_name}', 'number_of_posts = %s WHERE channel_id = %s', val)
+
 
 class BlogCog(commands.Cog):
 
@@ -22,28 +112,47 @@ class BlogCog(commands.Cog):
 
     @blogcategory.command()
     async def register(self, ctx):
-        myresult = await db_search('category_id', 'discord_blog_main_info', f'category_id = {ctx.channel.category.id}')
-        if len(myresult) == 0:
-            sql = "INSERT INTO discord_blog_main_info (server_id, category_id) VALUES (%s, %s)"
-            val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
-            mycursor.execute(sql, val)
+
+        ##
+        # Get some id
+        ##
+        get_server_id = await db_search('server_id', 'blog_server', f'server_id = {ctx.guild.id}')
+
+        if get_server_id:
+            search_blog_id = await db_reformat(await db_search('blog_id', 'blog_server', f'server_id = {ctx.guild.id}'), 1)
+            search_blog_category_id = await db_search('category_id', 'blog_category', f'blog_id = {search_blog_id}')
+        else:
+            date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            mycursor.execute(f'INSERT INTO blogs (created_at) VALUES (\'{date}\')')
             mydb.commit()
+
+            sql = "INSERT INTO blog_server (blog_id, server_id) VALUES (%s, %s)"
+            val = (1, f'{ctx.guild.id}')
+            await db_insert(sql, val)
+            search_blog_id = 1
+            search_blog_category_id = []  # 必ず成功
+
+        if len(search_blog_category_id) == 0:
+            sql = "INSERT INTO blog_category (blog_id, server_id, category_id) VALUES (%s, %s, %s)"
+            val = (f'{search_blog_id}', f'{ctx.guild.id}', f'{ctx.channel.category.id}')
+            await db_insert(sql, val)
+
             await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているカテゴリです')
 
     @blogcategory.command()
     async def unregister(self, ctx):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+        db_search_category_id = await db_search('category_id', 'blog_main_info',
                                                 f'category_id = {ctx.channel.category.id}')
         if len(db_search_category_id) == 0:
-            sql = "INSERT INTO discord_blog_main_info (server_id, category_id) VALUES (%s, %s)"
+            sql = "INSERT INTO blog_main_info (server_id, category_id) VALUES (%s, %s)"
             val = (f"{ctx.guild.id}", f"{ctx.channel.category.id}")
             mycursor.execute(sql, val)
             mydb.commit()
             await embed_send(ctx, self.bot, 1, 'エラー', '登録されていないカテゴリです')
         else:
-            await db_delete('discord_blog_main_info', 'category_id = %s', f'{ctx.channel.category.id}')
+            await db_delete('blog_main_info', 'category_id = %s', f'{ctx.channel.category.id}')
             await embed_send(ctx, self.bot, 0, '成功', 'カテゴリの解除に成功しました!')
 
     @commands.group()
@@ -53,15 +162,15 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='setRole')
     async def _setrole(self, ctx, role: discord.Role):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
+        db_search_category_id = await db_search('category_id', 'blog_main_info',
                                                 f'category_id = {ctx.channel.category.id}')
         if len(db_search_category_id) == 1:
             if ctx.author.guild_permissions.administrator:
-                check_alredy_register = await db_search('role', 'discord_blog_main_info',
+                check_alredy_register = await db_search('role', 'blog_main_info',
                                                         f'server_id = {ctx.guild.id} AND role IS NOT NULL')
                 if not check_alredy_register:
                     val = (f'{role.id}', f'{ctx.guild.id}')
-                    await db_update('discord_blog_main_info', 'role = %s WHERE server_id = %s', val)
+                    await db_update('blog_main_info', 'role = %s WHERE server_id = %s', val)
                 else:
                     print('kousinn')
             else:
@@ -71,36 +180,50 @@ class BlogCog(commands.Cog):
                              f'登録されていないカテゴリです。\n```{bot_prefix}blogcategory register```を実行してください')
 
     @blog.command(name='register')
-    async def _register(self, ctx):
-        db_search_category_id = await db_search('category_id', 'discord_blog_main_info',
-                                                f'category_id = {ctx.channel.category.id}')
-        if len(db_search_category_id) == 1:
-            db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info',
-                                                   f'channel_id = {ctx.channel.id}')
-            if len(db_search_channel_id) == 0:
-                sql = "INSERT INTO discord_blog_sub_info (channel_id, user_id, embed_color, number_of_posts) VALUES (%s, %s, %s, %s)"
-                embed_color_list = [5620992, 16088855, 16056193, 9795021]
-                print(random.choice(embed_color_list))
-                val = (
-                    f'{ctx.channel.id}', f'{ctx.author.id}', random.choice(embed_color_list), 0)
-                mycursor.execute(sql, val)
-                mydb.commit()
+    async def _register(self, ctx):  # TODO:2020/11/13/ 自動生成を楽にするための機構を追加する
+        search_blog_id, blog_server_id, blog_category_id, blog_channel_id = await blog_informations(ctx)
+        print(blog_category_id)
+        if blog_category_id:  # 既にカテゴリが登録されてるか
+            if blog_channel_id is None:  # 既にチャンネルが登録されてるか
+                date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 登録日時用
+                mycursor.execute(f'INSERT INTO blogs (created_at) VALUES (\'{date}\')')
+                sql_list = {
+                    0: {
+                        'table_name': 'blog_detail',
+                        'sql': 'INSERT INTO blog_detail (blog_id, blog_channel, total_post) VALUES (%s, %s, %s)',
+                        'val': (f'{search_blog_id}', f'{ctx.channel.id}', f'{ctx.author.id}', 0)
+                    },
+                    1: {
+                        'table_name': 'blog_user_detail',
+                        'sql': 'INSERT INTO blog_user_detail (blog_id, channel_id, user_id, total_post) VALUES (%s, %s, %s, %s)',
+                        'val': (f'{search_blog_id}', f'{ctx.channel.id}', f'{ctx.author.id}', 0)
+                    }
+                }
 
-                sql = "INSERT INTO discord_blog_xp (channel_id, xp, level) VALUES (%s, %s, %s)"
-                val = (
-                    f'{ctx.channel.id}', 0, 1)
-                mycursor.execute(sql, val)
-                mydb.commit()
+
+                for main_key in sql_list.keys():
+                    table_name = sql_list[main_key]['table_name']
+                    sql = sql_list[main_key]['sql']
+                    val = sql_list[main_key]['val']
+                    print(sql % val)
+                    await db_insert(sql, val)
+
+                    #await db_update('blog_detail', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
+
+                """
+
+
                 member = await ctx.guild.fetch_member(ctx.author.id)
-                role_id = await db_search('role', 'discord_blog_main_info',
+                role_id = await db_search('role', 'blog_main_info',
                                           f'server_id = {member.guild.id} AND role IS NOT NULL')
+
                 if role_id:
                     reformat_role_id = await db_reformat(role_id, 2)
                     role = get(member.guild.roles, id=reformat_role_id)
                     await member.add_roles(role)
                     await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
                 else:
-                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しましたが権限が設定されていなかったため自動付与されていません!')
+                    await embed_send(ctx, self.bot, 0, '成功', '登録に成功しましたが権限が設定されていなかったため自動付与されていません!')"""
             else:
                 await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているチャンネルです')
         else:
@@ -109,7 +232,7 @@ class BlogCog(commands.Cog):
     @blog.command(name='notice')
     async def _notice(self, ctx, on_off):
         member = await ctx.guild.fetch_member(ctx.author.id)
-        role_id = await db_search('role', 'discord_blog_main_info',
+        role_id = await db_search('role', 'blog_main_info',
                                   f'server_id = {member.guild.id} AND role IS NOT NULL')
         reformat_role_id = await db_reformat(role_id, 2)
         role = get(member.guild.roles, id=reformat_role_id)
@@ -142,12 +265,12 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='unregister')
     async def _unregister(self, ctx):
-        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        db_search_channel_id = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
         if len(db_search_channel_id) == 1:
-            db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
+            db_get_user_id = await db_search('user_id', 'blog_sub_info',
                                              f'channel_id = {ctx.channel.id} AND user_id = {ctx.author.id}')
             if len(db_get_user_id) == 1:
-                await db_delete('discord_blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
+                await db_delete('blog_sub_info', 'channel_id = %s', f'{ctx.channel.id}')
                 await db_delete('discord_blog_xp', 'channel_id = %s', f'{ctx.channel.id}')
                 await embed_send(ctx, self.bot, 0, '成功', f'ブログの登録を解除しました\n{ctx.author.name}さん今までのご利用ありがとうございました!')
             else:
@@ -157,9 +280,9 @@ class BlogCog(commands.Cog):
 
     @blog.command(name='status')
     async def _status(self, ctx):
-        db_search_channel_id = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
+        db_search_channel_id = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
         if len(db_search_channel_id) == 1:
-            db_get_user_id = await db_search('user_id', 'discord_blog_sub_info',
+            db_get_user_id = await db_search('user_id', 'blog_sub_info',
                                              f'channel_id = {ctx.channel.id} AND user_id IS NOT NULL')
             reformat_user_id = await db_reformat(db_get_user_id, 1)
 
@@ -167,7 +290,7 @@ class BlogCog(commands.Cog):
             get_user_avatar_url = get_user_info.avatar_url
             get_blog_user_name = get_user_info.name
 
-            db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
+            db_get_number_of_posts = await db_search('number_of_posts', 'blog_sub_info',
                                                      f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
             reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
 
@@ -237,63 +360,17 @@ class BlogCog(commands.Cog):
     async def on_message(self, ctx):
         if ctx.author.bot:
             return
-        if ctx.content != f'{bot_prefix}blog status':
-            if len(ctx.content) >= 3:
-                myresult = await db_search('channel_id', 'discord_blog_sub_info', f'channel_id = {ctx.channel.id}')
-                if len(myresult) >= 1:
-                    # 投稿数をデータベースから取得
-                    db_get_number_of_posts = await db_search('number_of_posts', 'discord_blog_sub_info',
-                                                             f'channel_id = {ctx.channel.id} AND number_of_posts >= 0')
-                    reformat_number_of_posts = await db_reformat(db_get_number_of_posts, 1)
-
-                    # 経験値をデータベースから取得
-                    db_get_exp = await db_search('xp', 'discord_blog_xp', f'channel_id = {ctx.channel.id} AND xp >= 0')
-                    reformat_xp = await db_reformat(db_get_exp, 1)
-                    # レベルをデータベースから取得
-                    db_get_level = await db_search('level', 'discord_blog_xp',
-                                                   f'channel_id = {ctx.channel.id} AND level >= 0')
-                    reformat_level = await db_reformat(db_get_level, 2)
-
-                    default_levelup_xp = 5  # 基本レベルを設定
-
-                    if reformat_level == 1:
-                        next_levelup_xp = float(default_levelup_xp * 1.1) + int(reformat_level * 2) / 2
-                    else:
-                        db_get_saved_levelup_xp = await db_search('saved_levelup_xp', 'discord_blog_xp',
-                                                                  f'channel_id = {ctx.channel.id} AND saved_levelup_xp IS NOT NULL')
-                        reformat_saved_levelup_xp = await db_reformat(db_get_saved_levelup_xp, 3)
-                        print(reformat_saved_levelup_xp)
-                        reformat_saved_levelup_xp = float(reformat_saved_levelup_xp)
-                        next_levelup_xp = float(reformat_saved_levelup_xp * 1.1) + int(reformat_level * 2) / 2
-                    rereformat_xp = int(reformat_xp) / 100
-                    rereformat_xp = str(rereformat_xp)
-                    rereformat_xp = rereformat_xp[:rereformat_xp.find('.')]
-
-                    next_levelup_xp = str(next_levelup_xp)
-                    next_levelup_xp = next_levelup_xp[:next_levelup_xp.find('.')]
-                    print(f'レベルアップに必要な経験値: {next_levelup_xp}\n現在の経験値{rereformat_xp}')
-                    if int(rereformat_xp) >= int(next_levelup_xp):
-                        val = (f"{next_levelup_xp}", f"{ctx.channel.id}")
-                        await db_update('discord_blog_xp', 'saved_levelup_xp = %s WHERE channel_id = %s', val)
-
-                        reformat_level = int(reformat_level) + 1
-                        embed = discord.Embed(
-                            title=f"レベルアップ!", color=0x8bc34a)
-                        embed.add_field(name=f"blogのレベルが{reformat_level}に上がりました!", value=f"今後もblogでのご活躍をご期待しています!",
-                                        inline=True)
-                        await ctx.channel.send(embed=embed)
-                        next_xp = '0'
-                    else:
-                        next_xp = int(reformat_xp) + + int(2) * 10
-                        print(f'今回の発言後のxp(小数) {next_xp / 100}\n今回の発言後のxp(整数) {next_xp}')
-                    next_number_of_posts = int(reformat_number_of_posts) + 1
-
-                    val = (f"{int(next_xp)}", f"{reformat_level}", f"{ctx.channel.id}")
-                    await db_update('discord_blog_xp', 'xp = %s, level = %s WHERE channel_id = %s', val)
-
-                    val = (f"{next_number_of_posts}", f"{ctx.channel.id}")
-                    await db_update('discord_blog_sub_info', 'number_of_posts = %s WHERE channel_id = %s', val)
-
+        if ctx.content != f'{bot_prefix}blog status': # blog statusコマンドが投稿にカウントされないように
+            """ 現在使用不可なのでコメントアウト
+            if len(ctx.content) >= 3: 
+                if len(ctx.content) >= 3:
+                    myresult = await db_search('channel_id', 'blog_sub_info', f'channel_id = {ctx.channel.id}')
+                    execution_user_id = f'{ctx.author.id}'
+                    if len(myresult) >= 1:
+                        print(f'{myresult}')
+                        await blog_level_system(ctx, execution_user_id, 0)
+                        await blog_level_system(ctx, execution_user_id, 1)
+            """
 
 def setup(bot):
     bot.add_cog(BlogCog(bot))

@@ -6,3 +6,5 @@ configparser
 requests
 beautifulsoup4
 lxml
+coloredlogs
+ffmpeg

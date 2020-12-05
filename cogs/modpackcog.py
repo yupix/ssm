@@ -18,8 +18,6 @@ async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_re
           f'ModPackの説明: {modpack_description}\n'
           f'ModPackのタグ一覧: {modpack_tags}')
 
-
-
     if reformat_mode == '0':
         embed_title = f'{modpack_name}を登録しました!'
         embed_sub_title = 'ModPackIDは'
@@ -137,7 +135,6 @@ class ModpackCog(commands.Cog):
             pack_mc_version = await db_search('pack_mc_version', 'discord_modpack_main_info',
                                               f'author_id = {ctx.author.id} AND id = {pack_id} AND pack_mc_version IS NOT NULL')
             reformat_pack_mc_version = await db_reformat(pack_mc_version, 1)
-
 
             pack_description = await db_search('pack_description', 'discord_modpack_sub_info',
                                                     f'id = {pack_id} AND pack_description IS NOT NULL')
