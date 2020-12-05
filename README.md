@@ -20,8 +20,16 @@ masterブランチはtestingブランチがある程度安定したと判断し�
 ## 使い方
 open-jtalkが別途必要です
 
+### 推奨: Dockerに構築(一部機能が利用不可)
 ```
-#MAIN REPOSITORY
+git clone https://github.com/yupix/ssm.git
+
+#.configとdocker-compose.ymlを変更する
+docker-compose build
+docker-compose up -d
+```
+### 非推奨: ホストに構築(すべての機能が利用可能)
+```
 git clone https://github.com/yupix/ssm.git
 
 
