@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import urllib
 
 import coloredlogs
@@ -7,11 +8,13 @@ import discord
 import mysql.connector
 import traceback
 import configparser
+import typing
 
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from halo import Halo
 from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
+
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('config.ini', encoding='utf-8')
@@ -85,14 +88,23 @@ logger.SUCCESS = 25 # WARNINGとINFOの間
 addLevelName(logger.SUCCESS, 'SUCCESS')
 setattr(logger, 'success', lambda message, *args: logger._log(logger.SUCCESS, message, args))
 
-
-mydb = mysql.connector.connect(
-    host=f'{db_host}',
-    port=f'{db_port}',
-    user=f'{db_user}',
-    password=f'{db_password}',
-    database=f'{db_default_database}'
-)
+while True:
+    try:
+        mydb = mysql.connector.connect(
+            host=f'{db_host}',
+            port=f'{db_port}',
+            user=f'{db_user}',
+            password=f'{db_password}',
+            database=f'{db_default_database}'
+        )
+        logger.info(f'データベースへの接続に成功しました')
+        break
+    except mysql.connector.Error as err:
+        if err.errno == 2003:
+            logger.error(f'{db_host}に接続できませんでした。3秒後に自動でリトライします')
+        elif err.errno == 1698:
+            logger.error(f'{db_user}@{db_host}で認証に失敗しました。3秒後に自動でリトライします')
+        time.sleep(3)
 
 mycursor = mydb.cursor()
 
@@ -103,20 +115,20 @@ INITIAL_EXTENSIONS = [
     'cogs.blocklistcog',
     'cogs.modpackcog',
     'cogs.hostlabcog',
-    'cogs.read'
+    'cogs.read',
+    'cogs.note',
+    'cogs.emoji'
 ]
 
 
-async def retry_db_connection():
-    mydb = mysql.connector.connect(
-        host=f'{db_host}',
-        port=f'{db_port}',
-        user=f'{db_user}',
-        password=f'{db_password}',
-        database=f'{db_default_database}'
-    )
-    global mycursor
-    mycursor = mydb.cursor()
+async def check_variable(variable, error_message: typing.Optional[str] = None, ctx=None):
+    if variable:
+        return 0
+    else:
+        if error_message is not None:
+            #await ctx.send(f'{error_message}')
+            logger.error('文字列が空です')
+        return 1
 
 
 async def check_url(url):
@@ -130,11 +142,14 @@ async def check_url(url):
         return 1
 
 
-async def embed_send(ctx, bot, type, title, subtitle):
-    if type == 0:  # 成功時
-        embed_color = 0x8bc34a
-    elif type == 1:  # エラー発生時
-        embed_color = 0xd32f2f
+async def embed_send(ctx, bot, type, title, subtitle, color: typing.Optional[str] = None):
+    if color is None:
+        if type == 0:  # 成功時
+            embed_color = 0x8bc34a
+        elif type == 1:  # エラー発生時
+            embed_color = 0xd32f2f
+    else:
+        embed_color = color
     logger.debug(f'{type}, {title}, {subtitle}')
     embed = discord.Embed(title=f'{title}', description=f'{subtitle}', color=embed_color)
     m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
@@ -151,6 +166,7 @@ async def db_insert(sql, val):
     mycursor.execute(sql, val)
     mydb.commit()
 
+
 async def db_get_auto_increment():
     mycursor.execute(
         f'SELECT last_insert_id();')
@@ -159,15 +175,16 @@ async def db_get_auto_increment():
     return result
 
 
-async def db_search(table_name, table_column, where_condition, *args):
-    if not args:
+async def db_search(table_name=None, table_column=None, where_condition=None, custom=None):
+    if table_name and table_column and where_condition:
         mycursor.execute(
             f'SELECT {table_name} FROM {table_column} WHERE {where_condition}')
         myresult = mycursor.fetchall()
         return myresult
     else:
+        logger.debug(custom)
         mycursor.execute(
-            f'SELECT {args}')
+            f'SELECT {custom}')
         myresult = mycursor.fetchall()
         return myresult
 
@@ -232,8 +249,8 @@ def check_database():
         mycursor.execute('DROP DATABASE IF EXISTS default_discord')
         mycursor.execute('CREATE DATABASE default_discord')
 
-        mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
-        mycursor.execute('CREATE DATABASE discord_blogwar')
+        #mycursor.execute('DROP DATABASE IF EXISTS discord_blogwar')
+        #mycursor.execute('CREATE DATABASE discord_blogwar')
 
         with open('./tmp/dummy', mode='x') as f:
             f.write('')

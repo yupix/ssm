@@ -12,8 +12,18 @@ class ReadCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(pass_context=True, name='status')
+    async def status(self, ctx):
+        #print(member)
+        #member = discord.Member(ctx.author.id)
+        member = await ctx.guild.fetch_member(ctx.author.id)
+        print(member.status)
+
     @commands.command()
     async def join(self, ctx):
+        member = await ctx.guild.fetch_member(ctx.author.id)
+        print(member.status)
+
         vc = ctx.author.voice.channel
         logger.debug(f'ボイスチャンネル {vc} に参加しました')
         creat_wav(f'こんにちは! 読み上げを開始します。')
@@ -23,7 +33,10 @@ class ReadCog(commands.Cog):
             await asyncio.sleep(3)
             ctx.guild.voice_client.play(source)
         except discord.ClientException:
-            logger.error(f'既に参加しています')
+            creat_wav(f'既に参加しています')
+
+            source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
+            ctx.guild.voice_client.play(source)
 
     @commands.command()
     async def leave(self, ctx):
