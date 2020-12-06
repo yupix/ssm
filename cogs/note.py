@@ -8,34 +8,7 @@ import typing
 import mysql
 from discord.ext import commands
 
-from main import logger, Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send, db_delete
-
-
-def add_list(hit, key, args_list):
-	if hit is not None:
-		args_list[f'{hit}'] = key
-		hit = None
-		return hit, args_list
-	else:
-		hit = key
-		return hit, args_list
-
-
-def check_args(argument):
-	split_argument = argument.lower().split(' ')
-	hit = None
-	args_list = {}
-	for i in split_argument:
-		if i == '--type' or i == '--test2' or i == '-c' or hit is not None:
-			hit, args_list = add_list(hit, i, args_list)
-
-	else:
-		logger.debug(hit)
-		if hit is not None:
-			return '1', f'{i}には引数が必要です'
-		else:
-			print(args_list)
-			return args_list
+from main import logger, Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send, db_delete, check_args
 
 class NoteCog(commands.Cog):
 
