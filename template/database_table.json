@@ -163,7 +163,7 @@
 			"globals": {
 				"column": {
 					"1": "id INT auto_increment",
-					"2": "user_id VARCHAR(255) PRIMARY KEY",
+					"2": "user_id BIGINT PRIMARY KEY",
 					"3": "index(id)"
 				}
 			},
@@ -173,8 +173,7 @@
 					"2": "user_id BIGINT NOT NULL PRIMARY KEY",
 					"3": "created_at DATETIME DEFAULT CURRENT_TIMESTAMP",
 					"4": "index(id)",
-					"5": "PRIMARY KEY(user_id, content, category_name)",
-					"6": "CONSTRAINT globals_detail_FK FOREIGN KEY (user_id) REFERENCES globals(user_id) ON DELETE CASCADE ON UPDATE CASCADE"
+					"5": "CONSTRAINT globals_detail_FK FOREIGN KEY (user_id) REFERENCES globals(user_id) ON DELETE CASCADE ON UPDATE CASCADE"
 				}
 			},
 			"globals_xp": {
