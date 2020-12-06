@@ -6,8 +6,8 @@ from discord.utils import get
 
 from cogs.blocklistcog import blog_reaction
 from cogs.modpackcog import modpack_reaction
-from main import db_search, db_reformat, mycursor, mydb, db_update, json_load, bot_prefix, logger, Output_wav_name
-from modules.voice_generator import creat_wav
+from main import db_search, db_reformat, db_cursor, cnx, db_update, json_load, bot_prefix, logger, Output_wav_name
+from modules.voice_generator import create_wave
 
 """利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト
 async def basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg):
@@ -40,14 +40,14 @@ async def basic_reaction(reaction, reformat_mode, user, msg, reformat_check_reac
 				sql = "INSERT INTO server_main_info (server_id, consent_status) VALUES (%s, %s)"
 				val = (f'{msg.guild.id}', f'Agree')
 
-				mycursor.execute(sql, val)
-				mydb.commit()
+				db_cursor.execute(sql, val)
+				cnx.commit()
 			else:
 				msg.channel.send('既に登録されています')
 
 
 
-			mydb.commit()
+			cnx.commit()
 """
 
 class BasicCog(commands.Cog):
@@ -58,26 +58,6 @@ class BasicCog(commands.Cog):
 	@commands.command()
 	async def ping(self, ctx):
 		await ctx.channel.send(f'ping: {round(self.bot.latency * 1000)}ms ')
-
-	"""利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト
-	@commands.command()
-	async def agree(self, ctx):
-		embed = discord.Embed(title='利用規約', description='この利用規約はゆぴ(作者)がいついかなる時でも変更する権利を保留することを予めご理解ください。', color=0x0f9dcc)
-		embed.add_field(name='最終更新日', value=f'2020/10/05', inline=False)
-		embed.add_field(name='概要', value=f'この利用規約は本Botを使用する上での注意事項を含んでいるため最後まで読むことを推奨します', inline=False)
-		embed.add_field(name='1.個人情報に関して', value=f'本Botではすべての機能に個人を特定するような機能はついておりません。また、それを補助するような機能などもございません。', inline=True)
-		embed.add_field(name='2.保存する情報について', value=f'本Botを使用する上で以下の情報を取得することがあります。```- サーバーID\n- チャンネルID\n- ユーザーID\n- 発言数(一部のみ)```', inline=True)
-		embed.add_field(name='3.保存した情報の取り扱いについて', value=f'本BotではAPIとして登録したサーバーなどが一覧で見れるようなもの作成する予定がある為、個人単位での設定により非公開にすることが可能です(デフォルトは非公開)。', inline=False)
-		msg = await ctx.send(embed=embed)
-		await msg.add_reaction('✅')
-		await msg.add_reaction('✖')
-		sql = "INSERT INTO discord_reaction (channel_id, message_id, user_id, command, mode, original_message_id) VALUES (%s, %s, %s, %s, %s, %s)"
-		val = (msg.channel.id, msg.id, ctx.author.id, 'basic', 0, ctx.message.id)
-
-		mycursor.execute(sql, val)
-
-		mydb.commit()
-	"""
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
@@ -129,10 +109,10 @@ class BasicCog(commands.Cog):
 
 		if before.channel is None:
 			logger.debug(f'{member.name} さんがボイスチャンネル {after.channel.name} に参加しました')
-			creat_wav(input_text + f'{member.name} さんがボイスチャンネルに参加しました')
+			create_wave(input_text + f'{member.name} さんがボイスチャンネルに参加しました')
 		elif after.channel is None:
 			logger.debug(f'{member.name} さんがボイスチャンネル {before.channel.name} から退出しました')
-			creat_wav(input_text + f'{member.name} さんがボイスチャンネルから退出しました')
+			create_wave(input_text + f'{member.name} さんがボイスチャンネルから退出しました')
 
 		if before.channel is None or after.channel is None:
 			source = discord.FFmpegPCMAudio(f"{Output_wav_name}")

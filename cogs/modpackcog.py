@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
-from main import db_search, db_reformat, mycursor, mydb, db_delete, embed_send, check_url
+from main import db_search, db_reformat, db_cursor, cnx, db_delete, embed_send, check_url
 
 
 async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg):
@@ -21,15 +21,13 @@ async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_re
 	if reformat_mode == '0':
 		embed_title = f'{modpack_name}を登録しました!'
 		embed_sub_title = 'ModPackIDは'
-
-		cancele_embed_title = f'ModPackの登録をキャンセルしました'
-		cancele_embed_title = 'またの機会をお待ちしています'
-
+		cannel_embed_title = 'ModPackの登録をキャンセルしました'
+		cannel_sub_embed_title = 'またの機会をお待ちしています'
 	elif reformat_mode == '1':
 		embed_title = f'{user.name} さんのブロックリストを解除しました'
 		embed_sub_title = '問題が発生しないことを祈ります'
-		cancele_embed_title = f'{user.name} さんのブロックリスト解除をキャンセルしました'
-		cancele_embed_title = '無理に解除する必要性はありません！'
+		cannel_embed_title = f'{user.name} さんのブロックリスト解除をキャンセルしました'
+		cannel_sub_embed_title = '無理に解除する必要性はありません！'
 
 	embed_color = 0x8bc34a
 	if reaction.emoji == '✅':
@@ -41,15 +39,15 @@ async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_re
 		if reformat_mode == '0':
 			sql = "INSERT INTO discord_modpack_main_info (author_id, pack_name, pack_mc_version) VALUES (%s, %s, %s)"
 			val = (user.id, modpack_name, modpack_mc_version)
-			mycursor.execute(sql, val)
+			db_cursor.execute(sql, val)
 
-			mydb.commit()
+			cnx.commit()
 
 			sql = "INSERT INTO discord_modpack_sub_info (pack_description, pack_tags) VALUES (%s, %s)"
 			val = (modpack_description, modpack_tags)
-			mycursor.execute(sql, val)
+			db_cursor.execute(sql, val)
 
-			mydb.commit()
+			cnx.commit()
 
 			get_modpack_id = await db_search('id', 'discord_modpack_main_info',
 											 f'author_id = {user.id} AND pack_name = \'{modpack_name}\' AND id IS NOT NULL')
@@ -65,15 +63,15 @@ async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_re
 		# elif reformat_mode == '1':
 		# sql = f'DELETE FROM discord_sub_block_list WHERE server_id = %s AND user_id = %s'
 		# adr = (msg.guild.id, user.id,)
-		# mycursor.execute(sql, adr)
+		# db_cursor.execute(sql, adr)
 
-		# mydb.commit()
+		# cnx.commit()
 
 		await db_delete('discord_reaction', 'message_id = %s',
 						f'{reformat_check_reaction}')  # embedのデータを削除
 	elif reaction.emoji == '✖':
-		embed = discord.Embed(title=cancele_embed_title,
-							  description=cancele_embed_title, color=embed_color)
+		embed = discord.Embed(title=cannel_embed_title,
+							  description=cannel_sub_embed_title, color=embed_color)
 		await msg.edit(embed=embed)
 		await db_delete('discord_reaction', 'message_id = %s', f'{reformat_check_reaction}')
 
@@ -94,10 +92,10 @@ class ModpackCog(commands.Cog):
 		tag = ','.join(args).replace(',', ', ')
 		if not tag:
 			tag = '無し'
-		check_alredy_register = await db_search('pack_name', 'discord_modpack_main_info',
+		check_already_register = await db_search('pack_name', 'discord_modpack_main_info',
 												f'author_id = {ctx.author.id} AND pack_name = \'{pack_name}\' AND pack_name IS NOT NULL')
 
-		if not check_alredy_register:
+		if not check_already_register:
 
 			embed = discord.Embed(title='登録情報の確認', description='登録したあとに内容を変更することは可能です', color=0x0f9dcc)
 			embed.add_field(name='ModPack名', value=f'{pack_name}', inline=True)
@@ -110,9 +108,9 @@ class ModpackCog(commands.Cog):
 			sql = "INSERT INTO discord_reaction (channel_id, message_id, user_id, command, mode, original_message_id) VALUES (%s, %s, %s, %s, %s, %s)"
 			val = (msg.channel.id, msg.id, ctx.author.id, 'modpack', 0, ctx.message.id)
 
-			mycursor.execute(sql, val)
+			db_cursor.execute(sql, val)
 
-			mydb.commit()
+			cnx.commit()
 
 		else:
 			await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているModPack名です')
@@ -124,9 +122,9 @@ class ModpackCog(commands.Cog):
 
 	@modpack.command()
 	async def check(self, ctx, pack_id):
-		check_alredy_register = await db_search('id', 'discord_modpack_main_info',
+		check_already_register = await db_search('id', 'discord_modpack_main_info',
 												f'author_id = {ctx.author.id} AND id IS NOT NULL')
-		if check_alredy_register:
+		if check_already_register:
 			pack_name = await db_search('pack_name', 'discord_modpack_main_info',
 													f'author_id = {ctx.author.id} AND id = {pack_id} AND pack_name IS NOT NULL')
 			reformat_pack_name = await db_reformat(pack_name, 1)

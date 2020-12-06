@@ -17,9 +17,9 @@ from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 
 
 config_ini = configparser.ConfigParser(os.environ)
-config_ini.read('config.ini', encoding='utf-8')
+config_ini.read('./config.ini', encoding='utf-8')
 config = configparser.ConfigParser()
-config.read('config.ini', encoding='utf-8')
+config.read('./config.ini', encoding='utf-8')
 
 
 bot_user = config_ini['DEFAULT']['User']
@@ -93,7 +93,7 @@ setattr(logger, 'success', lambda message, *args: logger._log(logger.SUCCESS, me
 
 while True:
 	try:
-		mydb = mysql.connector.connect(
+		cnx = mysql.connector.connect(
 			host=f'{db_host}',
 			port=f'{db_port}',
 			user=f'{db_user}',
@@ -108,8 +108,8 @@ while True:
 		elif err.errno == 1698:
 			logger.error(f'{db_user}@{db_host}で認証に失敗しました。3秒後に自動でリトライします')
 		time.sleep(3)
-mydb.ping(reconnect=True)
-mycursor = mydb.cursor()
+cnx.ping(reconnect=True)
+db_cursor = cnx.cursor()
 
 INITIAL_EXTENSIONS = [
 	'cogs.testcog',
@@ -146,15 +146,15 @@ async def check_url(url):
 		return 1
 
 
-async def embed_send(ctx, bot, type, title, subtitle, color: typing.Optional[str] = None):
+async def embed_send(ctx, bot, embed_type, title, subtitle, color = None):
 	if color is None:
-		if type == 0:  # 成功時
+		if embed_type == 0:  # 成功時
 			embed_color = 0x8bc34a
-		elif type == 1:  # エラー発生時
+		elif embed_type == 1:  # エラー発生時
 			embed_color = 0xd32f2f
 	else:
 		embed_color = color
-	logger.debug(f'{type}, {title}, {subtitle}')
+	logger.debug(f'{embed_type}, {title}, {subtitle}')
 	embed = discord.Embed(title=f'{title}', description=f'{subtitle}', color=embed_color)
 	m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
 	return m
@@ -162,34 +162,34 @@ async def embed_send(ctx, bot, type, title, subtitle, color: typing.Optional[str
 
 async def db_update(table_name, table_column, val):
 	sql = f'UPDATE {table_name} SET {table_column}'
-	mycursor.execute(sql, val)
-	mydb.commit()
+	db_cursor.execute(sql, val)
+	cnx.commit()
 
 
 async def db_insert(sql, val):
-	mycursor.execute(sql, val)
-	mydb.commit()
-	return mycursor.lastrowid
+	db_cursor.execute(sql, val)
+	cnx.commit()
+	return db_cursor.lastrowid
 
-async def db_get_auto_increment():
-	mycursor.execute(
+async def db_get_auto_increment():  # TODO: 2020/12/06/ この関数の削除
+	db_cursor.execute(
 		f'SELECT last_insert_id();')
-	myresult = mycursor.fetchall()
+	myresult = db_cursor.fetchall()
 	result = await db_reformat(myresult, 2)
 	return result
 
 
 async def db_search(table_name=None, table_column=None, where_condition=None, custom=None):
 	if table_name and table_column and where_condition:
-		mycursor.execute(
+		db_cursor.execute(
 			f'SELECT {table_name} FROM {table_column} WHERE {where_condition}')
-		myresult = mycursor.fetchall()
+		myresult = db_cursor.fetchall()
 		return myresult
 	else:
 		logger.debug(custom)
-		mycursor.execute(
+		db_cursor.execute(
 			f'SELECT {custom}')
-		myresult = mycursor.fetchall()
+		myresult = db_cursor.fetchall()
 		return myresult
 
 
@@ -214,9 +214,9 @@ async def db_reformat(myresult, type):
 async def db_delete(table_column, where_condition, adr):
 	sql = f'DELETE FROM {table_column} WHERE {where_condition}'
 	adr = (adr,)
-	mycursor.execute(sql, adr)
+	db_cursor.execute(sql, adr)
 
-	mydb.commit()
+	cnx.commit()
 
 
 def json_load(path):
@@ -225,7 +225,7 @@ def json_load(path):
 	return json_load
 
 def create_default_table():
-	mycursor.execute('USE default_discord')
+	db_cursor.execute('USE default_discord')
 
 	# discord_reaction_data を作る
 	database_table_list_load = json_load("./template/database_table.json")
@@ -235,14 +235,14 @@ def create_default_table():
 			for n in database_table_list_load[x]['table']:
 				get_table_name = database_table_list_load[f'{x}']['table'][f'{n}']
 				sql = (f'DROP TABLE IF EXISTS {get_table_name}')
-				mycursor.execute(sql)
+				db_cursor.execute(sql)
 		elif f'{x}' == 'create':
 			for n in database_table_list_load[f'{x}']['table']:
 				set_column = ""
 				for i in database_table_list_load[f'{x}']['table'][f'{n}']['column']:
 					get_column = database_table_list_load[f'{x}']['table'][f'{n}']['column'][f'{i}']
 					set_column += get_column + ', '
-				mycursor.execute(
+				db_cursor.execute(
 					f'CREATE TABLE IF NOT EXISTS {n} ({set_column[:-2]})')
 
 
@@ -252,8 +252,8 @@ def check_database():
 		logger.info('データベースの初期化確認に成功')
 	else:
 		logger.info('データベースを初期化中です...')
-		mycursor.execute('DROP DATABASE IF EXISTS default_discord')
-		mycursor.execute('CREATE DATABASE default_discord')
+		db_cursor.execute('DROP DATABASE IF EXISTS default_discord')
+		db_cursor.execute('CREATE DATABASE default_discord')
 
 		config.set('RESET', 'Status', '1')
 		with open('config.ini', 'w') as configfile:
@@ -281,54 +281,10 @@ class ssm(commands.Bot):
 		print('--------------------------------')
 
 	async def on_message(self, ctx):
-		"""利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト
-		if ctx.author.bot:
-			return
-		command_list_load = json_load("./template/command_list.json")
-
-		message_content = ctx.content.split()
-		for x in command_list_load['command']:
-			command_name = command_list_load['command'][x]
-			if message_content[0] == bot_prefix + command_name:
-				check_command = 'yes'
-
-
-		mycursor.execute(
-			f'SELECT consent_status FROM server_main_info WHERE server_id = {ctx.guild.id} LIMIT 1')
-		check_consent_status = mycursor.fetchall()
-
-		print(check_consent_status)
-		if not check_consent_status:
-			if 'check_command' in locals():
-				embed = discord.Embed(
-					title='エラー', description=f'利用規約に同意していません！以下のコマンドで利用規約に同意してください\n```{bot_prefix}agree```', color=0xd32f2f)
-
-				await ctx.channel.send(embed=embed)
-				return 1
-
-		"""
 		logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
 		#print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
 		await bot.process_commands(ctx)
 
-"""    async def on_command_error(self, ctx, error):
-		if isinstance(error, CommandNotFound):
-			await ctx.send('存在しないコマンドです')
-			return 1
-		else:
-			print(error)
-			if str(error) in 'Command raised an exception: OperationalError: 2055:':
-				await retry_db_connection()
-				await ctx.send(f'申し訳ありません、データベースエラーが発生しました。エラーが発生したことにより自動的に修正された可能性があります！再度実行してエラーが出るようであれば報告してください。')
-			else:
-				embed = discord.Embed(title='エラーレポート', description='', color=0xd32f2f)
-				embed.add_field(name='エラー発生サーバーID', value=ctx.guild.id, inline=True)
-				embed.add_field(name='エラー発生ユーザーID', value=ctx.author.id, inline=True)
-				embed.add_field(name='エラー発生コマンド', value=ctx.message.content, inline=True)
-				embed.add_field(name='エラー内容', value=error, inline=True)
-				m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
-				await ctx.send(f'申し訳ありません、内部エラーが発生しました。コードと一緒にエラー報告をしていただけると助かります：{m.id}')
-"""
 
 if __name__ == '__main__':
 	spinner = Halo(text='Loading Now',

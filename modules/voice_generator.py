@@ -11,7 +11,7 @@ config_ini = configparser.ConfigParser()
 config_ini.read('config.ini', encoding='utf-8')
 
 
-def creat_wav(inputText):
+def create_wave(inputText):
     # TODO: 2020/11/22 辞書を追加
 
     with open(input_file, 'w', encoding='UTF-8') as file:
@@ -29,4 +29,4 @@ def creat_wav(inputText):
 
 
 if __name__ == '__main__':
-    creat_wav('テスト音声です')
+    create_wave('テスト音声です')

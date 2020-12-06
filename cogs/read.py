@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from main import logger, Output_wav_name
-from modules.voice_generator import creat_wav
+from modules.voice_generator import create_wave
 
 
 class ReadCog(commands.Cog):
@@ -26,21 +26,21 @@ class ReadCog(commands.Cog):
 
 		vc = ctx.author.voice.channel
 		logger.debug(f'ボイスチャンネル {vc} に参加しました')
-		creat_wav(f'こんにちは! 読み上げを開始します。')
+		create_wave(f'こんにちは! 読み上げを開始します。')
 		source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
 		try:
 			await vc.connect()
 			await asyncio.sleep(3)
 			ctx.guild.voice_client.play(source)
 		except discord.ClientException:
-			creat_wav(f'既に参加しています')
+			create_wave(f'既に参加しています')
 
 			source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
 			ctx.guild.voice_client.play(source)
 
 	@commands.command()
 	async def leave(self, ctx):
-		creat_wav(f'読み上げを終了します。お疲れ様でした。')
+		create_wave(f'読み上げを終了します。お疲れ様でした。')
 		source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
 		ctx.guild.voice_client.play(source)
 		await asyncio.sleep(4)
