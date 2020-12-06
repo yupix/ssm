@@ -8,7 +8,10 @@ import typing
 import mysql
 from discord.ext import commands
 
-from main import logger, Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send, db_delete, check_args
+from main import Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send, db_delete, check_args
+
+import logging
+from logging import getLogger, StreamHandler, Formatter
 
 class NoteCog(commands.Cog):
 
@@ -18,6 +21,7 @@ class NoteCog(commands.Cog):
 	@commands.group()
 	async def note(self, ctx):
 		if ctx.invoked_subcommand is None:
+			logger.debug('test')
 			await ctx.send('このコマンドには引数が必要です')
 
 	@note.command(name='add')
