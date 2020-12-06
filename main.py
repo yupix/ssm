@@ -121,9 +121,36 @@ INITIAL_EXTENSIONS = [
 	'cogs.read',
 	'cogs.note',
 	'cogs.emoji',
-	'cogs.pso2'
+	'cogs.pso2',
+	'cogs.rss'
+
 ]
 
+def add_list(hit, key, args_list):
+	if hit is not None:
+		args_list[f'{hit}'] = key
+		hit = None
+		return hit, args_list
+	else:
+		hit = key
+		return hit, args_list
+
+
+def check_args(argument):
+	split_argument = argument.lower().split(' ')
+	hit = None
+	args_list = {}
+	for i in split_argument:
+		if i == '--type' or i == '--test2' or i == '--max' or i == '-c' or hit is not None:
+			hit, args_list = add_list(hit, i, args_list)
+
+	else:
+		logger.debug(hit)
+		if hit is not None:
+			return '1', f'{i}には引数が必要です'
+		else:
+			print(args_list)
+			return args_list
 
 async def check_variable(variable, error_message: typing.Optional[str] = None, ctx=None):
 	if variable:
