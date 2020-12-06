@@ -1,135 +1,165 @@
 {
-  "delete": {
-    "table": {
-      "2": "blocklist_reaction",
-      "1": "reactions"
-    }
-  },
-  "create": {
-    "table": {
-      "blogs": {
-        "column": {
-          "1": "id INT auto_increment PRIMARY KEY",
-          "2": "created_at DATETIME",
-          "3": "index(id)"
-        }
-      },
-      "blog_server": {
-        "column": {
-          "1": "blog_id INTEGER",
-          "2": "server_id BIGINT PRIMARY KEY",
-          "3": "CONSTRAINT fk_blogs_id_blog_server FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_category": {
-        "column": {
-          "1": "blog_id INTEGER",
-          "2": "server_id BIGINT",
-          "3": "category_id BIGINT PRIMARY KEY",
-          "4": "CONSTRAINT blog_category_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "5": "CONSTRAINT blog_category_FK_1 FOREIGN KEY (server_id) REFERENCES default_discord.blog_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_channel": {
-        "column": {
-          "1": "blog_id INTEGER",
-          "2": "channel_id BIGINT PRIMARY KEY",
-          "3": "CONSTRAINT fk_blogs_id_blog_channel FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_detail": {
-        "column": {
-          "1": "blog_id INTEGER PRIMARY KEY",
-          "2": "blog_channel BIGINT",
-          "3": "total_post INT",
-          "4": "created_at DATETIME",
-          "5": "CONSTRAINT blog_detail_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "6": "CONSTRAINT blog_detail_FK_1 FOREIGN KEY (blog_channel) REFERENCES default_discord.blog_channel(channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_user_detail": {
-        "column": {
-          "1": "blog_id INTEGER PRIMARY KEY",
-          "2": "channel_id BIGINT",
-          "3": "user_id INT",
-          "4": "total_post INT",
-          "5": "created_at DATETIME",
-          "6": "CONSTRAINT fk_blogs_id_blog_user_detail FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "7": "CONSTRAINT fk_blog_channel_channel_id_blog_user_detail FOREIGN KEY (channel_id) REFERENCES blog_channel (channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_xp": {
-        "column": {
-          "1": "blog_id INTEGER PRIMARY KEY",
-          "2": "xp BIGINT",
-          "3": "level INT",
-          "4": "xp_saved_levelup_xp INT",
-          "5": "CONSTRAINT fk_blogs_id_blog_xp FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blog_user_xp": {
-        "column": {
-          "1": "blog_id INTEGER PRIMARY KEY",
-          "2": "xp BIGINT",
-          "3": "level INT",
-          "4": "xp_saved_levelup_xp INT",
-          "5": "CONSTRAINT fk_blogs_id_blog_user_xp FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blocklists": {
-        "column": {
-          "1": "id INT auto_increment PRIMARY KEY",
-          "2": "created_at DATETIME",
-          "3": "index(id)"
-        }
-      },
-      "blocklist_server": {
-        "column": {
-          "1": "server_id BIGINT PRIMARY KEY"
-        }
-      },
-      "blocklist_settings": {
-        "column": {
-          "1": "server_id BIGINT PRIMARY KEY",
-          "2": "mode VARCHAR(126)"
-        }
-      },
-      "blocklist_role": {
-        "column": {
-          "1": "server_id BIGINT",
-          "2": "role_id BIGINT PRIMARY KEY",
-          "3": "CONSTRAINT blocklist_role_FK FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "blocklist_user": {
-        "column": {
-          "1": "block_id INTEGER",
-          "2": "server_id BIGINT",
-          "3": "user_id BIGINT PRIMARY KEY",
-          "4": "mode VARCHAR(255)",
-          "5": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists(id) ON DELETE CASCADE ON UPDATE CASCADE",
-          "6": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      },
-      "reactions": {
-        "column": {
-          "1": "id INT auto_increment PRIMARY KEY",
-          "2": "message_id BIGINT",
-          "3": "index(id)"
-        }
-      },
-      "blocklist_reaction": {
-        "column": {
-          "1": "reaction_id INT",
-          "2": "server_id BIGINT",
-          "3": "channel_id BIGINT",
-          "4": "user_id BIGINT",
-          "5": "command varchar(100)",
-          "6": "mode INT",
-          "7": "block_mode varchar(255)",
-          "8": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES default_discord.reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
-        }
-      }
-    }
-  }
+	"delete": {
+	"table": {
+		"2": "blocklist_reaction",
+		"1": "reactions"
+	}
+	},
+	"create": {
+	"table": {
+		"blogs": {
+		"column": {
+			"1": "id INT auto_increment PRIMARY KEY",
+			"2": "created_at DATETIME",
+			"3": "index(id)"
+		}
+		},
+		"blog_server": {
+		"column": {
+			"1": "blog_id INTEGER",
+			"2": "server_id BIGINT PRIMARY KEY",
+			"3": "CONSTRAINT fk_blogs_id_blog_server FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_category": {
+		"column": {
+			"1": "blog_id INTEGER",
+			"2": "server_id BIGINT",
+			"3": "category_id BIGINT PRIMARY KEY",
+			"4": "CONSTRAINT blog_category_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
+			"5": "CONSTRAINT blog_category_FK_1 FOREIGN KEY (server_id) REFERENCES default_discord.blog_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_channel": {
+		"column": {
+			"1": "blog_id INTEGER",
+			"2": "channel_id BIGINT PRIMARY KEY",
+			"3": "CONSTRAINT fk_blogs_id_blog_channel FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_detail": {
+		"column": {
+			"1": "blog_id INTEGER PRIMARY KEY",
+			"2": "blog_channel BIGINT",
+			"3": "total_post INT",
+			"4": "created_at DATETIME",
+			"5": "CONSTRAINT blog_detail_FK FOREIGN KEY (blog_id) REFERENCES default_discord.blogs(id) ON DELETE CASCADE ON UPDATE CASCADE",
+			"6": "CONSTRAINT blog_detail_FK_1 FOREIGN KEY (blog_channel) REFERENCES default_discord.blog_channel(channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_user_detail": {
+		"column": {
+			"1": "blog_id INTEGER PRIMARY KEY",
+			"2": "channel_id BIGINT",
+			"3": "user_id INT",
+			"4": "total_post INT",
+			"5": "created_at DATETIME",
+			"6": "CONSTRAINT fk_blogs_id_blog_user_detail FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE",
+			"7": "CONSTRAINT fk_blog_channel_channel_id_blog_user_detail FOREIGN KEY (channel_id) REFERENCES blog_channel (channel_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_xp": {
+		"column": {
+			"1": "blog_id INTEGER PRIMARY KEY",
+			"2": "xp BIGINT",
+			"3": "level INT",
+			"4": "xp_saved_levelup_xp INT",
+			"5": "CONSTRAINT fk_blogs_id_blog_xp FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blog_user_xp": {
+		"column": {
+			"1": "blog_id INTEGER PRIMARY KEY",
+			"2": "xp BIGINT",
+			"3": "level INT",
+			"4": "xp_saved_levelup_xp INT",
+			"5": "CONSTRAINT fk_blogs_id_blog_user_xp FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blocklists": {
+		"column": {
+			"1": "id INT auto_increment PRIMARY KEY",
+			"2": "created_at DATETIME",
+			"3": "index(id)"
+		}
+		},
+		"blocklist_server": {
+		"column": {
+			"1": "server_id BIGINT PRIMARY KEY"
+		}
+		},
+		"blocklist_settings": {
+		"column": {
+			"1": "server_id BIGINT PRIMARY KEY",
+			"2": "mode VARCHAR(126)",
+			"3": "CONSTRAINT blocklist_settings_FK FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blocklist_role": {
+		"column": {
+			"1": "server_id BIGINT",
+			"2": "role_id BIGINT PRIMARY KEY",
+			"3": "CONSTRAINT blocklist_role_FK FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"blocklist_user": {
+		"column": {
+			"1": "block_id INTEGER",
+			"2": "server_id BIGINT",
+			"3": "user_id BIGINT PRIMARY KEY",
+			"4": "mode VARCHAR(255)",
+			"5": "CONSTRAINT blocklist_user_FK FOREIGN KEY (block_id) REFERENCES blocklists(id) ON DELETE CASCADE ON UPDATE CASCADE",
+			"6": "CONSTRAINT blocklist_user_FK_1 FOREIGN KEY (server_id) REFERENCES blocklist_server(server_id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"reactions": {
+		"column": {
+			"1": "id INT auto_increment PRIMARY KEY",
+			"2": "message_id BIGINT",
+			"3": "index(id)"
+		}
+		},
+		"blocklist_reaction": {
+		"column": {
+			"1": "reaction_id INT",
+			"2": "server_id BIGINT",
+			"3": "channel_id BIGINT",
+			"4": "user_id BIGINT",
+			"5": "command varchar(100)",
+			"6": "mode INT",
+			"7": "block_mode varchar(255)",
+			"8": "CONSTRAINT blocklist_reactions_FK FOREIGN KEY (reaction_id) REFERENCES reactions(id) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		},
+		"notes": {
+		"column": {
+			"1": "id INT auto_increment",
+			"2": "server_id BIGINT PRIMARY KEY",
+			"3": "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP",
+			"4": "index(id)"
+		}
+		},
+		"notes_category": {
+		"column": {
+			"1": "id INT auto_increment",
+			"2": "category_name VARCHAR(255) PRIMARY KEY",
+			"3": "index(id)"
+		}
+		},
+		"notes_detail": {
+		"column": {
+			"1": "id INT auto_increment",
+			"2": "server_id BIGINT",
+			"3": "user_id BIGINT NOT NULL",
+			"4": "category_name VARCHAR(255)",
+			"5": "content VARCHAR(255) NOT NULL",
+			"6": "created_at DATETIME DEFAULT CURRENT_TIMESTAMP",
+			"7": "index(id)",
+			"8": "PRIMARY KEY(user_id, content, category_name)",
+			"9": "CONSTRAINT notes_detail_FK FOREIGN KEY (server_id) REFERENCES notes(server_id) ON DELETE CASCADE ON UPDATE CASCADE",
+			"10": "CONSTRAINT notes_detail_FK1 FOREIGN KEY (category_name) REFERENCES notes_category(category_name) ON DELETE CASCADE ON UPDATE CASCADE"
+		}
+		}
+	}
+	}
 }
