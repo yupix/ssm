@@ -75,7 +75,6 @@ INITIAL_EXTENSIONS = [
 	'cogs.basiccog',
 	'cogs.blocklistcog',
 	'cogs.modpackcog',
-	'cogs.hostlabcog',
 	'cogs.read',
 	'cogs.note',
 	'cogs.emoji',
