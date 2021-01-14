@@ -8,3 +8,7 @@ beautifulsoup4
 lxml
 coloredlogs
 ffmpeg
+sqlalchemy
+pymysql
+psycopg2
+feedparser
