@@ -50,13 +50,12 @@ class NoteCog(commands.Cog):
             if len(search_category_name) == 0:
                 logger.debug(f'カテゴリ「{category_name}」が存在しないため作成します')
                 await db_commit(NotesCategory(category_name=f'{category_name}'))
-            add_note_result = await db_commit(NotesDetail(user_id=f'{ctx.author.id}', content=f'{note}', category_name=f'{category_name}'))
+            add_note_result = await db_commit(NotesDetail(user_id=f'{ctx.author.id}', content=f'{note}', category_name=f'{category_name}'), True)
             if add_note_result != 'IntegrityError':
-                search_notes_id = session.query(NotesDetail).filter(and_(NotesDetail.category_name == f'{category_name}', NotesDetail.content == f'{note}', NotesDetail.user_id == f'{ctx.author.id}')).all()
-                for test in search_notes_id:
-                    logger.debug(vars(test))
+                search_notes = session.query(NotesDetail).filter(and_(NotesDetail.category_name == f'{category_name}', NotesDetail.content == f'{note}', NotesDetail.user_id == f'{ctx.author.id}')).all()
+
                 embed = discord.Embed(title="ノートの登録に成功しました", description="このメッセージは10秒後に自動で削除されます", color=0xff7e70)
-                embed.add_field(name="id", value=f"{search_notes_id}", inline=True)
+                embed.add_field(name="id", value=f"{add_note_result}", inline=True)
                 embed.add_field(name="ノート内容", value=f"{note}", inline=True)
                 await ctx.send(embed=embed)
             else:
