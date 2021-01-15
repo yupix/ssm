@@ -27,6 +27,31 @@ def mission_eta_conversion(fissure_eta):
     return fissure_eta
 
 
+def challenge_title_conversion(challenge_title):
+    conversion_list = {'Loyalty': '忠誠心', 'Detonator': '爆弾魔', 'Sidearm': 'サイドアーム', 'Cache Hunter': '貯蔵庫ハンター', 'Jailer': '投獄者',
+                       'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
+                       'Choose Wisely': '決断'}
+    for conversion in conversion_list.keys():
+        challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
+    return challenge_title
+
+
+def challenge_desc_conversion(challenge_desc):
+    conversion_list = {'Interact with your Kubrow or Kavat': 'クブロウかキャバットと触れ合う',
+                       'Kill 150 Enemies with Blast Damage': '150体の敵を爆発ダメージで倒す',
+                       'Complete a Mission with only a Secondary Weapon equipped': 'セカンダリ武器のみを装備しミッションをクリアする',
+                       'Find all caches in 3 Sabotage missions': '3回の妨害ミッションですべての貯蔵庫を見つける',
+                       'Complete 3 Capture missions': '確保ミッションを3回クリアする',
+                       'Complete 9 Invasion missions of any type': '侵略ミッションを9回クリアする',
+                       'While piloting a hijacked Crewship, destroy 3 enemy Fighters': 'ハイジャックしたクルーシップを操縦中に敵の戦闘機を3機倒す',
+                       'Clear a Railjack Boarding Party without your Warframe taking damage': 'WARFRAMEがダメージを受けずにレールジャック搭乗部隊をクリアする',
+                       'Complete 8 Railjack Missions': 'レールジャックミッションを8回クリアする',
+                       'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる'
+                       }
+    for conversion in conversion_list.keys():
+        challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
+    return challenge_desc
+
 class BlocklistCog(commands.Cog):
 
     def __init__(self, bot):
@@ -84,7 +109,7 @@ class BlocklistCog(commands.Cog):
         for count, nightwave in enumerate(r['activeChallenges']):
             challenge_title = nightwave['title']
             challenge_desc = nightwave['desc']
-            embed.add_field(name=f"{challenge_title}", value=f"{challenge_desc}", inline=True)
+            embed.add_field(name=f"{challenge_title_conversion(challenge_title)}", value=f"{challenge_desc_conversion(challenge_desc)}", inline=True)
         await ctx.send(embed=embed)
 
 
