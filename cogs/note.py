@@ -83,18 +83,12 @@ class NoteCog(commands.Cog):
             else:
                 if '-c' in args and args.get('-c') is not None:
                     category_name = args.get('-c')
-                    search_reaction_id = await db_search('content', 'notes_detail',
-                                                         f'user_id = {note_author.id} AND content IS NOT NULL AND category_name = \'{category_name}\'')
+                    notes = session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.category_name == f'{category_name}')).all()
                 if '--type' in args and 'category' == args.get('--type'):
                     notes = session.query(NotesDetail).filter(NotesDetail.user_id == f'{ctx.author.id}').all()
-
-                    search_reaction_id = await db_search('category_name', 'notes_detail',
-                                                         f'user_id = {note_author.id} AND content IS NOT NULL AND category_name IS NOT NULL')
         else:
             category_name = 'デフォルト'
             notes = session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.category_name == f'{category_name}')).all()
-            #search_reaction_id = await db_search('content', 'notes_detail',
-                                                 #f'user_id = {note_author.id} AND content IS NOT NULL AND category_name = \'{category_name}\'')
 
         note_list = ''
         embed = discord.Embed(color=0x859fff)
@@ -119,8 +113,6 @@ class NoteCog(commands.Cog):
                 del emoji
             print(custom_message)
             r_custom_message = i.content
-            if args is not None and '--type' in args and 'category' == args.get('--type'):
-                search_notes_id = await db_reformat(await db_search('id', 'notes_category', f'category_name = \'{r_custom_message}\''), 2)
             embed.add_field(name=f"ID: {i.id}", value=f"{custom_message}", inline=True)
         # note_list += custom_message
         if not embed:
