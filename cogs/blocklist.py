@@ -4,8 +4,9 @@ import discord
 import typing
 from discord import NotFound, HTTPException
 from discord.ext import commands
-from main import db_search, db_cursor, cnx, db_reformat, db_delete, embed_send, db_insert, db_get_auto_increment, \
-	bot_prefix, logger
+from main import embed_send, bot_prefix, logger, db_commit
+from settings import session
+from sql.models.blocklist import BlocklistServer, BlocklistSettings
 
 
 async def blocklist_information(ctx, user):
@@ -79,30 +80,27 @@ class BlocklistCog(commands.Cog):
 			await ctx.send('this command is sub option required')
 
 	@blocklist.command()
-	async def register(self, ctx, mode, *args):
+	async def register(self, ctx, mode='autokick', *args):
 		if ctx.author.guild_permissions.administrator:
-			search_server_id = await db_reformat(await db_search('server_id', 'blocklist_server', f'server_id = {ctx.guild.id}'), 2)
-			if not search_server_id:  # サーバーIDが既に登録されてるか確認
-				sql = "INSERT INTO blocklist_server (server_id) VALUES (%s)"
-				val = (ctx.guild.id,)
-				await db_insert(sql, val)
-			search_settings_server_id = await db_reformat(
-				await db_search('server_id', 'blocklist_settings', f'server_id = {ctx.guild.id}'), 2)
+			search_blocklist_server = session.query(BlocklistServer).filter(BlocklistServer.server_id == f'{ctx.guild.id}').first()
+			if not search_blocklist_server:  # サーバーIDが既に登録されてるか確認
+				await db_commit(BlocklistServer(server_id=f'{ctx.guild.id}'))
 
-			if not search_settings_server_id:  # 既に設定が存在するか確認
+			search_blocklist_server_settings = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == f'{ctx.guild.id}').first()
+
+			if not search_blocklist_server_settings:  # 既に設定が存在するか確認
 				processing_mode_list = ['autokick', 'autoban', 'addrole', 'removerole']
 				for check_mode in processing_mode_list:
 					if f'{mode}' == f'{check_mode}':  # 存在するmodeか確認
 						logger.debug('モードの確認に成功しました')
-						sql = "INSERT INTO blocklist_settings (server_id, mode) VALUES (%s, %s)"
-						val = (ctx.guild.id, f'{mode}')
+						await db_commit(BlocklistSettings(server_id=f'{ctx.guild.id}', mode=mode))
+
 						if f'{mode}' == 'nonerole' or f'{mode}' == 'addrole':
 							role = self.bot.get_role(args[0])
 							print(role.id)
 							sql = "INSERT INTO blocklist_role (server_id, role_id) VALUES (%s, %s)"
 							val = (ctx.guild.id, role.id)
 							await db_insert(sql, val)
-						await db_insert(sql, val)
 						await embed_send(ctx, self.bot, 0, '成功', '設定を保存しました!')
 						break
 				else:
