@@ -69,10 +69,24 @@ class BlocklistCog(commands.Cog):
         r = requests.get(url).json()
         trader_location = r['location']
         trader_character = r['character']
+        credit_emoji = self.bot.get_emoji(799707332208361493)
+        ducats_emoji = self.bot.get_emoji(799708934671564811)
         embed = discord.Embed(title=f'{trader_location}', description=f'{trader_character}', color=0x859fff)
         for trade in r['inventory']:
-            embed.add_field(name=f"{trade['item']}", value=f"ducats: {trade['ducats']}\ncredits: {trade['credits']}", inline=True)
+            embed.add_field(name=f"{trade['item']}", value=f"{ducats_emoji} {trade['ducats']}\n{credit_emoji} {trade['credits']}", inline=True)
         await ctx.send(embed=embed)
+
+    @warframe.command()
+    async def nightwave(self, ctx):
+        url = 'https://api.warframestat.us/pc/nightwave'
+        r = requests.get(url).json()
+        embed = discord.Embed(color=0x859fff)
+        for count, nightwave in enumerate(r['activeChallenges']):
+            challenge_title = nightwave['title']
+            challenge_desc = nightwave['desc']
+            embed.add_field(name=f"{challenge_title}", value=f"{challenge_desc}", inline=True)
+        await ctx.send(embed=embed)
+
 
     @warframe.command()
     async def fissures(self, ctx):
