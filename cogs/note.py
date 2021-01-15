@@ -67,8 +67,8 @@ class NoteCog(commands.Cog):
             await ctx.send('存在しないidです')
             return
         if notes.user_id == ctx.author.id:
-            session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete()
-            session.commit()
+            await db_commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete())
+
 
 
     @note.command(name='list')
@@ -86,18 +86,21 @@ class NoteCog(commands.Cog):
                     search_reaction_id = await db_search('content', 'notes_detail',
                                                          f'user_id = {note_author.id} AND content IS NOT NULL AND category_name = \'{category_name}\'')
                 if '--type' in args and 'category' == args.get('--type'):
+                    notes = session.query(NotesDetail).filter(NotesDetail.user_id == f'{ctx.author.id}').all()
+
                     search_reaction_id = await db_search('category_name', 'notes_detail',
                                                          f'user_id = {note_author.id} AND content IS NOT NULL AND category_name IS NOT NULL')
         else:
             category_name = 'デフォルト'
-            search_reaction_id = await db_search('content', 'notes_detail',
-                                                 f'user_id = {note_author.id} AND content IS NOT NULL AND category_name = \'{category_name}\'')
+            notes = session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.category_name == f'{category_name}')).all()
+            #search_reaction_id = await db_search('content', 'notes_detail',
+                                                 #f'user_id = {note_author.id} AND content IS NOT NULL AND category_name = \'{category_name}\'')
 
         note_list = ''
         embed = discord.Embed(color=0x859fff)
-        for i in search_reaction_id:
+        for i in notes:
             custom_message = ''
-            for emoji in re.finditer('e!(.*?)!e', f'{search_reaction_id}'):
+            for emoji in re.finditer('e!(.*?)!e', f'{i.content}'):
                 base_message = re.sub("\(|\)|\'", "", f'{i}').replace(',', '\n')
                 for n in emoji.groups():  # emoji
                     check_emoji_type = re.sub("\\D", "", n)
@@ -111,14 +114,12 @@ class NoteCog(commands.Cog):
                     else:
                         custom_message = custom_message.replace(',', '\n').replace(f'e!{n}!e', f'{get_emoji}')
             if 'emoji' not in locals():
-                custom_message = await db_reformat(i, 1) + '\n'
+                custom_message = i.content + '\n'
             print(custom_message)
-            r_custom_message = await db_reformat(i, 1)
+            r_custom_message = i.content
             if args is not None and '--type' in args and 'category' == args.get('--type'):
                 search_notes_id = await db_reformat(await db_search('id', 'notes_category', f'category_name = \'{r_custom_message}\''), 2)
-            search_notes_id = await db_reformat(await db_search('id', 'notes_detail', f'user_id = {note_author.id} '
-                                                                                      f'AND content = \'{r_custom_message}\''), 2)
-            embed.add_field(name=f"ID: {search_notes_id}", value=f"{custom_message}", inline=True)
+            embed.add_field(name=f"ID: {i.id}", value=f"{custom_message}", inline=True)
         # note_list += custom_message
         if not embed:
             await embed_send(ctx, self.bot, 0, 'INFO', 'ノートは空のようです', 0x859fff)

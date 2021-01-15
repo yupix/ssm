@@ -121,8 +121,9 @@ async def embed_send(ctx, bot, embed_type, title, subtitle, color=None):
     return m
 
 
-async def db_commit(content, autoincrement=None):
-    session.add(content)
+async def db_commit(content, autoincrement=None, commit_type='insert'):
+    if commit_type == 'insert':
+        session.add(content)
     try:
         session.commit()
         if autoincrement is None:
