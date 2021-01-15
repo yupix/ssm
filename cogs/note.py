@@ -1,22 +1,13 @@
-import asyncio
-import itertools
 import re
-
-import discord
 import typing
 
-import mysql
+import discord
 from discord.ext import commands
 from sqlalchemy import text, and_
-from sqlalchemy.exc import IntegrityError
 
-from main import Output_wav_name, check_variable, embed_send, check_args, logger, db_commit
-
-import logging
-from logging import getLogger, StreamHandler, Formatter
-
+from main import check_variable, embed_send, check_args, logger, db_commit
 from settings import session
-from sql.models.note import NotesUser, NotesCategory, NotesDetail
+from sql.models.note import NotesCategory, NotesDetail
 
 
 class NoteCog(commands.Cog):
@@ -114,7 +105,6 @@ class NoteCog(commands.Cog):
             print(custom_message)
             r_custom_message = i.content
             embed.add_field(name=f"ID: {i.id}", value=f"{custom_message}", inline=True)
-        # note_list += custom_message
         if not embed:
             await embed_send(ctx, self.bot, 0, 'INFO', 'ノートは空のようです', 0x859fff)
             return
