@@ -10,7 +10,7 @@ from discord.ext import commands
 from sqlalchemy import text, and_
 from sqlalchemy.exc import IntegrityError
 
-from main import Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send, db_delete, check_args, logger, db_commit
+from main import Output_wav_name, check_variable, embed_send, check_args, logger, db_commit
 
 import logging
 from logging import getLogger, StreamHandler, Formatter
@@ -52,8 +52,6 @@ class NoteCog(commands.Cog):
                 await db_commit(NotesCategory(category_name=f'{category_name}'))
             add_note_result = await db_commit(NotesDetail(user_id=f'{ctx.author.id}', content=f'{note}', category_name=f'{category_name}'), True)
             if add_note_result != 'IntegrityError':
-                search_notes = session.query(NotesDetail).filter(and_(NotesDetail.category_name == f'{category_name}', NotesDetail.content == f'{note}', NotesDetail.user_id == f'{ctx.author.id}')).all()
-
                 embed = discord.Embed(title="ノートの登録に成功しました", description="このメッセージは10秒後に自動で削除されます", color=0xff7e70)
                 embed.add_field(name="id", value=f"{add_note_result}", inline=True)
                 embed.add_field(name="ノート内容", value=f"{note}", inline=True)
@@ -63,14 +61,15 @@ class NoteCog(commands.Cog):
 
     @note.command(name='remove')
     async def _remove(self, ctx, note_id: typing.Optional[int] = None):
-        search_note_user_id = await db_search('user_id', 'notes_detail',
-                                              f'id = {note_id}')
-        if len(search_note_user_id) == 0:
+        notes = session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).first()
+
+        if notes is None:
             await ctx.send('存在しないidです')
             return
-        if await db_reformat(search_note_user_id, 2) == ctx.author.id:
-            print('ある')
-            await db_delete('notes_detail', 'id = %s', f'{note_id}')
+        if notes.user_id == ctx.author.id:
+            session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete()
+            session.commit()
+
 
     @note.command(name='list')
     async def _list(self, ctx, note_author: typing.Optional[discord.User] = 'me', *, args: check_args = None):

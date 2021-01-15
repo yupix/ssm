@@ -29,7 +29,7 @@ class NotesCategory(Base):
 class NotesDetail(Base):
     __tablename__ = 'notes_detail'
 
-    id = Column(BIGINT, primary_key=True, autoincrement=True)
+    id = Column(BIGINT, primary_key=True, autoincrement=True)  # TODO: 2021/01/15/ 複合キーになっているため、ここを修正しないとカテゴリとコンテンツによる複合がきちんと機能しない
     user_id = Column(BIGINT, ForeignKey('notes_user.user_id', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     content = Column(VARCHAR(255), nullable=False, primary_key=True)
     category_name = Column(VARCHAR(255), primary_key=True)
