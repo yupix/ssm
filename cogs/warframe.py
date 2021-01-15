@@ -64,6 +64,17 @@ class BlocklistCog(commands.Cog):
                     print(event_jpbs_enemylevels)
 
     @warframe.command()
+    async def voidtrader(self, ctx):
+        url = 'https://api.warframestat.us/pc/voidTrader'
+        r = requests.get(url).json()
+        trader_location = r['location']
+        trader_character = r['character']
+        embed = discord.Embed(title=f'{trader_location}', description=f'{trader_character}', color=0x859fff)
+        for trade in r['inventory']:
+            embed.add_field(name=f"{trade['item']}", value=f"ducats: {trade['ducats']}\ncredits: {trade['credits']}", inline=True)
+        await ctx.send(embed=embed)
+
+    @warframe.command()
     async def fissures(self, ctx):
         url = 'https://api.warframestat.us/pc/fissures'
         r = requests.get(url).json()
