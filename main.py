@@ -138,64 +138,6 @@ async def db_commit(content, autoincrement=None):
     return result
 
 
-async def db_update(table_name, table_column, val):
-    sql = f'UPDATE {table_name} SET {table_column}'
-    db_cursor.execute(sql, val)
-    cnx.commit()
-
-
-async def db_insert(sql, val):
-    db_cursor.execute(sql, val)
-    cnx.commit()
-    return db_cursor.lastrowid
-
-
-async def db_get_auto_increment():
-    db_cursor.execute(
-        f'SELECT last_insert_id();')
-    myresult = db_cursor.fetchall()
-    result = await db_reformat(myresult, 2)
-    return result
-
-
-async def db_search(table_name=None, table_column=None, where_condition=None, custom=None):
-    if table_name and table_column and where_condition:
-        db_cursor.execute(
-            f'SELECT {table_name} FROM {table_column} WHERE {where_condition}')
-        myresult = db_cursor.fetchall()
-        return myresult
-    else:
-        logger.debug(custom)
-        db_cursor.execute(
-            f'SELECT {custom}')
-        myresult = db_cursor.fetchall()
-        return myresult
-
-
-async def db_reformat(myresult, type):
-    if len(myresult) > 0:
-        for x in myresult:
-            reformat = "".join(map(str, x))
-        if type == 0:
-            return myresult
-        elif type == 1:
-            return str(reformat)
-        elif type == 2:
-            return int(reformat)
-        elif type == 3:
-            return float(reformat)
-        elif type == 4:
-            return list(reformat)
-    else:
-        return None
-
-
-async def db_delete(table_column, where_condition, adr):
-    sql = f'DELETE FROM {table_column} WHERE {where_condition}'
-    adr = (adr,)
-    db_cursor.execute(sql, adr)
-
-    cnx.commit()
 
 
 def json_load(path):
