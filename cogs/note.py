@@ -67,7 +67,7 @@ class NoteCog(commands.Cog):
             await ctx.send('存在しないidです')
             return
         if notes.user_id == ctx.author.id:
-            await db_commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete())
+            await db_commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete(), commit_type='delete')
 
 
 
@@ -115,6 +115,8 @@ class NoteCog(commands.Cog):
                         custom_message = custom_message.replace(',', '\n').replace(f'e!{n}!e', f'{get_emoji}')
             if 'emoji' not in locals():
                 custom_message = i.content + '\n'
+            else:
+                del emoji
             print(custom_message)
             r_custom_message = i.content
             if args is not None and '--type' in args and 'category' == args.get('--type'):
