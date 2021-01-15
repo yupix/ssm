@@ -56,6 +56,8 @@ logger = easy_logger.create(logger)
 INITIAL_EXTENSIONS = [
     'cogs.testcog',
     'cogs.note',
+    'cogs.blocklist',
+    'cogs.warframe',
 ]
 
 
