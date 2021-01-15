@@ -101,7 +101,7 @@ class NoteCog(commands.Cog):
         for i in notes:
             custom_message = ''
             for emoji in re.finditer('e!(.*?)!e', f'{i.content}'):
-                base_message = re.sub("\(|\)|\'", "", f'{i}').replace(',', '\n')
+                base_message = re.sub("\(|\)|\'", "", f'{i.content}').replace(',', '\n')
                 for n in emoji.groups():  # emoji
                     check_emoji_type = re.sub("\\D", "", n)
                     if len(str(check_emoji_type)) == 18:
