@@ -13,12 +13,12 @@ from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 from halo import Halo
 from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
-
 from sqlalchemy.exc import IntegrityError
 
 from modules.create_logger import easy_logger
 from settings import session
 from sql.models.user import *
+from googletrans import Translator
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('./config.ini', encoding='utf-8')
@@ -59,6 +59,13 @@ INITIAL_EXTENSIONS = [
     'cogs.blocklist',
     'cogs.warframe',
 ]
+
+
+def translator(content):
+    tr = Translator()
+    result = tr.translate(text=f"{content}", src="en", dest="ja").text
+
+    return result
 
 
 def add_list(hit, key, args_list):
@@ -139,8 +146,6 @@ async def db_commit(content, autoincrement=None, commit_type='insert'):
     finally:
         session.close()
     return result
-
-
 
 
 def json_load(path):

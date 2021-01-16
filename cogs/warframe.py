@@ -7,15 +7,16 @@ import numpy as np
 import requests
 from discord import NotFound, HTTPException
 from discord.ext import commands
-from main import embed_send, bot_prefix, logger, db_commit
+from main import embed_send, bot_prefix, logger, db_commit, translator
 from settings import session
 from sql.models.blocklist import BlocklistServer, BlocklistSettings
 
 
 def mission_type_conversion(fissure_mission_type):
     conversion_list = {'Spy': '潜入', 'Capture': '確保', 'Survival': '耐久', 'Sabotage': '妨害', 'Defense': '防衛', 'Extermination': '殲滅', 'Rescue': '救出',
-                       'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂'}
+                       'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック'}
     for conversion in conversion_list.keys():
+        print(f'{fissure_mission_type}, {conversion}')
         if fissure_mission_type == conversion:
             return fissure_mission_type.replace(conversion, conversion_list[f'{conversion}'])
 
@@ -30,7 +31,8 @@ def mission_eta_conversion(fissure_eta):
 def challenge_title_conversion(challenge_title):
     conversion_list = {'Loyalty': '忠誠心', 'Detonator': '爆弾魔', 'Sidearm': 'サイドアーム', 'Cache Hunter': '貯蔵庫ハンター', 'Jailer': '投獄者',
                        'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
-                       'Choose Wisely': '決断'}
+                       'Choose Wisely': '決断', 'Swordsman': '剣客'}
+
     for conversion in conversion_list.keys():
         challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
     return challenge_title
@@ -46,7 +48,8 @@ def challenge_desc_conversion(challenge_desc):
                        'While piloting a hijacked Crewship, destroy 3 enemy Fighters': 'ハイジャックしたクルーシップを操縦中に敵の戦闘機を3機倒す',
                        'Clear a Railjack Boarding Party without your Warframe taking damage': 'WARFRAMEがダメージを受けずにレールジャック搭乗部隊をクリアする',
                        'Complete 8 Railjack Missions': 'レールジャックミッションを8回クリアする',
-                       'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる'
+                       'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる',
+                       'Complete a Mission with only a Melee Weapon equipped': '近接武器のみを装備しミッションをクリアする'
                        }
     for conversion in conversion_list.keys():
         challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
@@ -111,6 +114,20 @@ class BlocklistCog(commands.Cog):
             challenge_desc = nightwave['desc']
             embed.add_field(name=f"{challenge_title_conversion(challenge_title)}", value=f"{challenge_desc_conversion(challenge_desc)}", inline=True)
         await ctx.send(embed=embed)
+
+    @warframe.command()
+    async def sortie(self, ctx):
+        url = 'https://api.warframestat.us/pc/sortie'
+        r = requests.get(url).json()
+        for count, sortie_variant in enumerate(r['variants']):
+            sortie_variant_node = sortie_variant['node']
+            sortie_variant_mission_type = sortie_variant['missionType']
+            sortie_variant_modifier = sortie_variant['modifier']
+            sortie_mission_desc = sortie_variant['modifierDescription']
+            embed = discord.Embed(title=f'{sortie_variant_node}', description=f'ミッション内容: {mission_type_conversion(sortie_variant_mission_type)}', color=0x859fff)
+            embed.add_field(name=f"効果", value=f"{translator(sortie_variant_modifier)}", inline=True)
+            embed.add_field(name=f"概要", value=f"{translator(sortie_mission_desc)}", inline=True)
+            await ctx.send(embed=embed)
 
 
     @warframe.command()
