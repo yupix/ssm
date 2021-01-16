@@ -4,9 +4,12 @@ import discord
 import typing
 from discord import NotFound, HTTPException
 from discord.ext import commands
+from sqlalchemy import and_
+
 from main import embed_send, bot_prefix, logger, db_commit
 from settings import session
-from sql.models.blocklist import BlocklistServer, BlocklistSettings
+from sql.models.basic import Reactions
+from sql.models.blocklist import BlocklistServer, BlocklistSettings, BlocklistUser
 
 
 async def blocklist_information(ctx, user):
@@ -109,31 +112,32 @@ class BlocklistCog(commands.Cog):
 				await embed_send(ctx, self.bot, 1, 'エラー', '既に設定が存在します')
 
 	@blocklist.command()
-	async def add(self, ctx, user_id, mode: typing.Optional[str]=None):
+	async def add(self, ctx, user_id, mode: typing.Optional[str] = None):
 		if ctx.author.guild_permissions.administrator:
-			db_search_server_id = await db_reformat(await db_search('server_id', 'blocklist_server', f'server_id = {ctx.guild.id}'), 2)
+			search_blocklist_server_settings = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == f'{ctx.guild.id}').first()
 			if mode is not None:
 				processing_mode_list = ['autokick', 'autoban', 'addrole', 'removerole']
 				for check_mode in processing_mode_list:
 					if f'{mode}' == f'{check_mode}':  # 存在するmodeか確認
-						if db_search_server_id:  # サーバーIDが既に登録されてるか確認
+						if search_blocklist_server_settings:  # サーバーIDが既に登録されてるか確認
 							try:
 								user = await self.bot.fetch_user(user_id)
-								search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id = await blocklist_information(ctx, user)
-								print(search_blocklist_id, search_blocklist_server_id, search_blocklist_user_id)
-								if not search_blocklist_user_id:
+								search_blocklist_user = session.query(BlocklistUser).filter(and_(BlocklistUser.server_id == f'{ctx.guild.id}', BlocklistUser.user_id == f'{ctx.author.id}')).first()
+
+								if search_blocklist_user is None:
 									embed = discord.Embed(title=f"{user.name} をブロックリストに登録しますか？",
 														  description="怒りに我を忘れていないかもう一度冷静になって確認してみましょう\n問題が無いようなら✅を押してください。",
 														  color=0xffc629)
 									msg = await ctx.send(embed=embed)
 									await msg.add_reaction('✅')
 									await msg.add_reaction('✖')
+									await db_commit(Reactions(message_id=f'{msg.id}'))
 
-									sql = "INSERT INTO reactions (message_id) VALUES (%s)"
-									val = (msg.id,)
-									await db_insert(sql, val)
+									search_reactions = session.query(Reactions).filter(Reactions.message_id == f'{msg.id}').first()
 
-									search_reaction_id = await db_reformat(await db_search('id', 'reactions', f'message_id = {msg.id}'), 2)
+									search_reactions.id
+									await db_commit(Reactions(message_id=f'{msg.id}'))
+
 									sql = "INSERT INTO blocklist_reaction (reaction_id, server_id, channel_id, user_id, command, mode, block_mode) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 									val = (search_reaction_id, msg.guild.id, msg.channel.id, user.id, 'blocklist', 0, f'{mode}')
 									await db_insert(sql, val)
@@ -187,7 +191,6 @@ class BlocklistCog(commands.Cog):
 			search_user_id = await db_search('user_id', 'blocklist_user', f'server_id = {ctx.guild.id}')
 
 			for i in range(len(search_block_id)):
-
 				print(search_block_id)
 				block_id = await db_reformat(f'{search_block_id[-i]}', 1)
 				user_id = await db_reformat(f'{search_user_id[-i]}', 1)
