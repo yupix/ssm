@@ -1,13 +1,7 @@
-import asyncio
-import re
-
-import discord
 import typing
 
-import mysql
+import discord
 from discord.ext import commands
-
-from main import logger, Output_wav_name, check_variable, db_insert, db_reformat, db_search, embed_send
 
 
 class EmojiCog(commands.Cog):

@@ -1,24 +1,19 @@
+import configparser
 import json
 import os
-import time
+import traceback
+import typing
 import urllib
+from logging import getLogger
 
 import discord
-import mysql.connector
-import traceback
-import configparser
-import typing
-
 from discord.ext import commands
-from discord.ext.commands import CommandNotFound
+from googletrans import Translator
 from halo import Halo
-from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 from sqlalchemy.exc import IntegrityError
 
 from modules.create_logger import easy_logger
 from settings import session
-from sql.models.user import *
-from googletrans import Translator
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('./config.ini', encoding='utf-8')

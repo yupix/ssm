@@ -4,9 +4,9 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
-from cogs.blocklistcog import blog_reaction
+from cogs.blocklist import blog_reaction
 from cogs.modpackcog import modpack_reaction
-from main import db_search, db_reformat, db_cursor, cnx, db_update, json_load, bot_prefix, logger, Output_wav_name
+from main import json_load, bot_prefix, logger, Output_wav_name
 from modules.voice_generator import create_wave
 
 """利用規約同意のデータが追加されたあとも認識しないため一時的にコメントアウト

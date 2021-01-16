@@ -1,7 +1,7 @@
 import discord
 import feedparser
 from discord.ext import commands
-from main import check_args, db_search, logger
+from main import check_args, logger
 
 
 class RssCog(commands.Cog):

@@ -1,15 +1,11 @@
-import datetime
+import discord
 
 import discord
-import typing
-
 import numpy as np
 import requests
-from discord import NotFound, HTTPException
 from discord.ext import commands
-from main import embed_send, bot_prefix, logger, db_commit, translator
-from settings import session
-from sql.models.blocklist import BlocklistServer, BlocklistSettings
+
+from main import translator
 
 
 def mission_type_conversion(fissure_mission_type):

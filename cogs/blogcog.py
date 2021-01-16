@@ -9,8 +9,7 @@ import urllib.request
 import requests
 from discord.utils import get
 
-from main import db_cursor, cnx, embed_send, db_search, db_delete, db_reformat, bot_prefix, db_update, custom_blogrole, \
-	db_insert
+from main import embed_send, bot_prefix, custom_blogrole
 
 
 async def blog_information(ctx):
