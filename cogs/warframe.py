@@ -27,7 +27,9 @@ def mission_eta_conversion(fissure_eta):
 def challenge_title_conversion(challenge_title):
     conversion_list = {'Loyalty': '忠誠心', 'Detonator': '爆弾魔', 'Sidearm': 'サイドアーム', 'Cache Hunter': '貯蔵庫ハンター', 'Jailer': '投獄者',
                        'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
-                       'Choose Wisely': '決断', 'Swordsman': '剣客'}
+                       'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
+                       'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
+                       'Defense': '防衛', 'Nothing but Profit': '利益こそ正義'}
 
     for conversion in conversion_list.keys():
         challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
@@ -45,11 +47,20 @@ def challenge_desc_conversion(challenge_desc):
                        'Clear a Railjack Boarding Party without your Warframe taking damage': 'WARFRAMEがダメージを受けずにレールジャック搭乗部隊をクリアする',
                        'Complete 8 Railjack Missions': 'レールジャックミッションを8回クリアする',
                        'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる',
-                       'Complete a Mission with only a Melee Weapon equipped': '近接武器のみを装備しミッションをクリアする'
+                       'Complete a Mission with only a Melee Weapon equipped': '近接武器のみを装備しミッションをクリアする',
+                       'Hack 8 Consoles': 'コンソールを8個ハッキングする',
+                       'Kill 150 Enemies with Gas Damage': '150体の敵をガスダメージで倒す',
+                       'Kill 30 Eximus': '30体のエクシマスを倒す',
+                       'Complete 6 different Perfect Animal Captures in Orb Vallis': 'オーブ峡谷で完璧な異なる動物保護を6回クリアする',
+                       'Complete 3 Rescue missions': '救出ミッションを3回クリアする',
+                       'Complete 3 different K-Drive races in Orb Vallis': 'オーブ峡谷で3つの異なるK-ドライブレースを完了する',
+                       'Complete a Defense mission reaching at least Wave 20': '防衛ミッションを最低20ウェーブまで進めてクリアする',
+                       'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す'
                        }
     for conversion in conversion_list.keys():
         challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
     return challenge_desc
+
 
 class BlocklistCog(commands.Cog):
 
@@ -124,7 +135,6 @@ class BlocklistCog(commands.Cog):
             embed.add_field(name=f"効果", value=f"{translator(sortie_variant_modifier)}", inline=True)
             embed.add_field(name=f"概要", value=f"{translator(sortie_mission_desc)}", inline=True)
             await ctx.send(embed=embed)
-
 
     @warframe.command()
     async def fissures(self, ctx):
