@@ -46,6 +46,7 @@ INITIAL_EXTENSIONS = [
     'cogs.note',
     'cogs.blocklist',
     'cogs.warframe',
+    'cogs.pso2',
 ]
 
 
