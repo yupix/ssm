@@ -23,13 +23,6 @@ config.read('./config.ini', encoding='utf-8')
 bot_user = config_ini['DEFAULT']['User']
 bot_prefix = config_ini['DEFAULT']['Prefix']
 bot_token = config_ini['DEFAULT']['Token']
-
-db_user = config_ini['DATABASE']['User']
-db_port = config_ini['DATABASE']['Port']
-db_host = config_ini['DATABASE']['Host']
-db_password = config_ini['DATABASE']['Password']
-db_default_database = config_ini['DATABASE']['Default_Database']
-
 reset_status = config_ini['RESET']['Status']
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
