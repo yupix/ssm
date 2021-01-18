@@ -60,8 +60,6 @@ class NoteCog(commands.Cog):
         if notes.user_id == ctx.author.id:
             await db_commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete(), commit_type='delete')
 
-
-
     @note.command(name='list')
     async def _list(self, ctx, note_author: typing.Optional[discord.User] = 'me', *, args: check_args = None):
 
