@@ -1,15 +1,11 @@
 import datetime
-import math
-import random
 
 import discord
 from discord import NotFound, HTTPException
 from discord.ext import commands
-import urllib.request
-import requests
 from discord.utils import get
 
-from main import embed_send, bot_prefix, custom_blogrole
+from main import embed_send, bot_prefix
 
 
 async def blog_information(ctx):

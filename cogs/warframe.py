@@ -1,6 +1,4 @@
 import discord
-
-import discord
 import numpy as np
 import requests
 from discord.ext import commands
