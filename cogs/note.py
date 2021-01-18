@@ -33,8 +33,8 @@ class NoteCog(commands.Cog):
             note_user_res = session.execute(note_user_sql)
             print(note_user_res)
 
-            if use_category is not None and use_category == '-c':
-                logger.debug(f'オプションが付与されています: {category_name}')
+            if use_category is not None and use_category == '-c' and category_name is not None:
+                logger.debug(f'カテゴリ「{category_name}」が指定されました')
             else:
                 category_name = 'デフォルト'
             search_category_name = session.query(NotesCategory).filter(NotesCategory.category_name == f'{category_name}').all()
