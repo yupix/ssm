@@ -3,7 +3,8 @@ import numpy as np
 import requests
 from discord.ext import commands
 
-from main import translator
+from main import translator, db_commit
+from sql.models.blog import BlogsServer, BlogsCategory
 
 
 def mission_type_conversion(fissure_mission_type):
@@ -27,7 +28,7 @@ def challenge_title_conversion(challenge_title):
                        'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
                        'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
                        'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
-                       'Defense': '防衛', 'Nothing but Profit': '利益こそ正義'}
+                       'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者'}
 
     for conversion in conversion_list.keys():
         challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
@@ -53,7 +54,9 @@ def challenge_desc_conversion(challenge_desc):
                        'Complete 3 Rescue missions': '救出ミッションを3回クリアする',
                        'Complete 3 different K-Drive races in Orb Vallis': 'オーブ峡谷で3つの異なるK-ドライブレースを完了する',
                        'Complete a Defense mission reaching at least Wave 20': '防衛ミッションを最低20ウェーブまで進めてクリアする',
-                       'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す'
+                       'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す',
+                       'Complete 3 Exterminate missions': '掃滅ミッションを3回クリアする',
+                       'Kill 150 Enemies with Toxin Damage': '150体の敵を毒ダメージで倒す'
                        }
     for conversion in conversion_list.keys():
         challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
@@ -85,16 +88,8 @@ class BlocklistCog(commands.Cog):
 
     @warframe.command()
     async def event(self, ctx):
-        url = "https://api.warframestat.us/pc"
-        r = requests.get(url).json()
-        embed = discord.Embed(color=0x859fff)
-        for events in r['events']:
-            event_jobs = events.get('jobs')
-            if event_jobs is not None:
-                for event_job in event_jobs:
-                    event_jobs_type = event_job.get('type')
-                    event_jpbs_enemylevels = event_job.get('enemyLevels')
-                    print(event_jpbs_enemylevels)
+        await db_commit(BlogsServer(server_id=f'{ctx.guild.id}'))
+        await db_commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
 
     @warframe.command()
     async def voidtrader(self, ctx):

@@ -52,6 +52,10 @@ INITIAL_EXTENSIONS = [
     'cogs.blog',
 ]
 
+async def none_check_invoked_subcommand(ctx, error_message):
+    if ctx.invoked_subcommand is None:
+        await ctx.send('このコマンドには引数が必要です')
+
 
 def translator(content):
     tr = Translator()
@@ -123,6 +127,7 @@ async def embed_send(ctx, bot, embed_type, title, subtitle, color=None):
 
 
 async def db_commit(content, autoincrement=None, commit_type='insert'):
+    logger.debug('commit')
     if commit_type == 'insert':
         session.add(content)
     try:
