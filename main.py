@@ -4,6 +4,7 @@ import os
 import traceback
 import typing
 import urllib
+from distutils.util import strtobool
 from logging import getLogger
 
 import discord
@@ -32,6 +33,7 @@ Voice_Path = config_ini['JTALK']['Voice_Path']
 Jtalk_Bin_Path = config_ini['JTALK']['Jtalk_Bin_Path']
 Output_wav_name = config_ini['JTALK']['Output_wav_name']
 Spped = config_ini['JTALK']['Spped']
+show_bot_chat_log = config_ini['OPTIONS']['show_bot_chat_log']
 
 # --------------------------------
 # 1.loggerの設定
@@ -47,6 +49,7 @@ INITIAL_EXTENSIONS = [
     'cogs.blocklist',
     'cogs.warframe',
     'cogs.pso2',
+    'cogs.blog',
 ]
 
 
@@ -162,9 +165,10 @@ class ssm(commands.Bot):
         print('--------------------------------')
 
     async def on_message(self, ctx):
+        if bool(strtobool(show_bot_chat_log)) is False and ctx.author.bot is True:
+            return
         logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
-        # print(f'[[ 発言 ]] {ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
-        await bot.process_commands(ctx)
+        await bot.process_commands(ctx)  # コマンド動作用
 
 
 if __name__ == '__main__':
