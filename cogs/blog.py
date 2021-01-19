@@ -4,8 +4,11 @@ import discord
 from discord import NotFound, HTTPException
 from discord.ext import commands
 from discord.utils import get
+from sqlalchemy import and_
 
-from main import embed_send, bot_prefix
+from main import embed_send, bot_prefix, db_commit, none_check_invoked_subcommand
+from settings import session
+from sql.models.blog import BlogsServer, BlogsCategory
 
 
 async def blog_information(ctx):
@@ -103,36 +106,17 @@ class BlogCog(commands.Cog):
 
     @commands.group()
     async def blogcategory(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send('このコマンドには引数が必要です')
+        await none_check_invoked_subcommand(ctx, 'このコマンドには引数が必要です')
 
     @blogcategory.command()
     async def register(self, ctx):
+        search_server = session.query(BlogsServer).filter(BlogsServer.server_id == f'{ctx.guild.id}').first()
 
-        ##
-        # Get some id
-        ##
-        get_server_id = await db_search('server_id', 'blog_server', f'server_id = {ctx.guild.id}')
-
-        if get_server_id:
-            search_blog_id = await db_reformat(await db_search('blog_id', 'blog_server', f'server_id = {ctx.guild.id}'), 1)
-            search_blog_category_id = await db_search('category_id', 'blog_category', f'blog_id = {search_blog_id}')
-        else:
-            date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            db_cursor.execute(f'INSERT INTO blogs (created_at) VALUES (\'{date}\')')
-            cnx.commit()
-
-            sql = "INSERT INTO blog_server (blog_id, server_id) VALUES (%s, %s)"
-            val = (1, f'{ctx.guild.id}')
-            await db_insert(sql, val)
-            search_blog_id = 1
-            search_blog_category_id = []  # 必ず成功
-
-        if len(search_blog_category_id) == 0:
-            sql = "INSERT INTO blog_category (blog_id, server_id, category_id) VALUES (%s, %s, %s)"
-            val = (f'{search_blog_id}', f'{ctx.guild.id}', f'{ctx.channel.category.id}')
-            await db_insert(sql, val)
-
+        if search_server is None:
+            await db_commit(BlogsServer(server_id=f'{ctx.guild.id}'))
+        search_category = session.query(BlogsCategory).filter(and_(BlogsCategory.server_id == f'{ctx.guild.id}', BlogsCategory.category_id == f'{ctx.channel.category.id}')).first()
+        if search_category is None:
+            await db_commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
             await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているカテゴリです')
