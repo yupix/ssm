@@ -3,15 +3,24 @@ import numpy as np
 import requests
 from discord.ext import commands
 
-from main import translator, db_commit
+from main import translator, db_commit, check_args, logger
+from settings import session
+from sql.models.WarframeFissure import WarframeFissuresMessage, WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresChannel
 from sql.models.blog import BlogsServer, BlogsCategory
+
+
+def warframe_fissures_embed(mission_title, mission_type, appear_enemy, drop_relic, time_up_to_end):
+    embed = discord.Embed(title=f'{mission_title}', description=f'ミッション内容: {mission_type}', color=0x859fff)
+    embed.add_field(name=f"出現エネミー", value=f"{appear_enemy}", inline=True)
+    embed.add_field(name=f"レリック", value=f"{drop_relic}", inline=True)
+    embed.add_field(name=f"終了まで", value=f'{time_up_to_end}', inline=True)
+    return embed
 
 
 def mission_type_conversion(fissure_mission_type):
     conversion_list = {'Spy': '潜入', 'Capture': '確保', 'Survival': '耐久', 'Sabotage': '妨害', 'Defense': '防衛', 'Extermination': '殲滅', 'Rescue': '救出',
                        'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック'}
     for conversion in conversion_list.keys():
-        print(f'{fissure_mission_type}, {conversion}')
         if fissure_mission_type == conversion:
             return fissure_mission_type.replace(conversion, conversion_list[f'{conversion}'])
 
@@ -28,11 +37,20 @@ def challenge_title_conversion(challenge_title):
                        'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
                        'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
                        'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
-                       'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者'}
+                       'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者', 'Patron': 'パトロン'}
 
     for conversion in conversion_list.keys():
         challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
     return challenge_title
+
+
+def fissure_tier_conversion(tier):
+    conversion_list = {'1': 'Lith', '2': 'Meso', '3': 'Neo', '4': 'Axi', '5': 'Requiem'}
+    for conversion in conversion_list.keys():
+        if tier == conversion:
+            fissure_tier = tier.replace(conversion, conversion_list[f'{conversion}'])
+            break
+    return fissure_tier
 
 
 def challenge_desc_conversion(challenge_desc):
@@ -56,11 +74,33 @@ def challenge_desc_conversion(challenge_desc):
                        'Complete a Defense mission reaching at least Wave 20': '防衛ミッションを最低20ウェーブまで進めてクリアする',
                        'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す',
                        'Complete 3 Exterminate missions': '掃滅ミッションを3回クリアする',
-                       'Kill 150 Enemies with Toxin Damage': '150体の敵を毒ダメージで倒す'
+                       'Kill 150 Enemies with Toxin Damage': '150体の敵を毒ダメージで倒す',
+                       'Donate to the Leverian': 'レベリアンに寄付する'
                        }
     for conversion in conversion_list.keys():
         challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
     return challenge_desc
+
+
+def get_warframe_fissures_api():
+    url = 'https://api.warframestat.us/pc/fissures'
+    r = requests.get(url).json()
+    fissure_list = []
+    for count, fissure in enumerate(r):
+        fissure_node = fissure.get('node')
+        fissure_mission_type = fissure.get('missionType')
+        fissure_enemy = fissure.get('enemy')
+        fissure_tier = fissure.get('tier')
+        fissure_eta = fissure.get('eta')
+        fissure_id = fissure.get('id')
+        fissure_expired = fissure.get('expired')
+        conversion_list = {'Lith': '1', 'Meso': '2', 'Neo': '3', 'Axi': '4', 'Requiem': '5'}
+        for conversion in conversion_list.keys():
+            if fissure_tier == conversion:
+                fissure_tier = fissure_tier.replace(conversion, conversion_list[f'{conversion}'])
+        tmp_list = [fissure_node, mission_type_conversion(fissure_mission_type), fissure_enemy, fissure_tier, mission_eta_conversion(fissure_eta), fissure_id, fissure_expired]
+        fissure_list.append(tmp_list)
+    return fissure_list
 
 
 class BlocklistCog(commands.Cog):
@@ -131,21 +171,7 @@ class BlocklistCog(commands.Cog):
 
     @warframe.command()
     async def fissures(self, ctx):
-        url = 'https://api.warframestat.us/pc/fissures'
-        r = requests.get(url).json()
-        fissure_list = []
-        for count, fissure in enumerate(r):
-            fissure_node = fissure.get('node')
-            fissure_mission_type = fissure.get('missionType')
-            fissure_enemy = fissure.get('enemy')
-            fissure_tier = fissure.get('tier')
-            fissure_eta = fissure.get('eta')
-            conversion_list = {'Lith': '1', 'Meso': '2', 'Neo': '3', 'Axi': '4', 'Requiem': '5'}
-            for conversion in conversion_list.keys():
-                if fissure_tier == conversion:
-                    fissure_tier = fissure_tier.replace(conversion, conversion_list[f'{conversion}'])
-            tmp_list = [fissure_node, mission_type_conversion(fissure_mission_type), fissure_enemy, fissure_tier, mission_eta_conversion(fissure_eta)]
-            fissure_list.append(tmp_list)
+        fissure_list = get_warframe_fissures_api()
         b = np.array(fissure_list)
         index = np.argsort(b[:, 3])
         b_sorted = b[index, :]
@@ -158,7 +184,12 @@ class BlocklistCog(commands.Cog):
             embed.add_field(name=f"出現エネミー", value=f"{i[2]}", inline=True)
             embed.add_field(name=f"レリック", value=f"{fissure_tier}", inline=True)
             embed.add_field(name=f"終了まで", value=f'{i[4]}', inline=True)
-            await ctx.send(embed=embed)
+            embed_message = await ctx.send(embed=embed)
+            search_warframe_fissures_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{i[5]}').first()
+            logger.debug(search_warframe_fissures_detail.id)
+            logger.debug(embed_message.id)
+            await db_commit(WarframeFissuresChannel(channel_id=embed_message.channel.id))
+            await db_commit(WarframeFissuresMessage(detail_id=search_warframe_fissures_detail.id, message_id=embed_message.id, channel_id=embed_message.channel.id))
 
 
 def setup(bot):
