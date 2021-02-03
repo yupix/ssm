@@ -175,7 +175,8 @@ async def loop():
 
     # APIから情報を取得
     fissure_list = get_warframe_fissures_api()
-
+    if fissure_list is None: # Json形式ではなかった場合用
+        return
     for warframe_fissure_id in session.query(WarframeFissuresId).all():
         for fissures in fissure_list:
             search_warframe_fissure_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{warframe_fissure_id.api_id}').first()

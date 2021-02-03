@@ -99,7 +99,7 @@ def get_warframe_fissures_api():
 	if 'json' in r.headers.get('content-type'):
 		r = r.json()
 	else:
-		return 'コンテンツがjsonではありません'
+		return None
 	fissure_list = []
 	for count, fissure in enumerate(r):
 		fissure_node = fissure.get('node')
