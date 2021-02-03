@@ -84,7 +84,12 @@ def challenge_desc_conversion(challenge_desc):
 
 def get_warframe_fissures_api():
     url = 'https://api.warframestat.us/pc/fissures'
-    r = requests.get(url).json()
+    r = requests.get(url)
+
+    if 'json' in r.headers.get('content-type'):
+        r = r.json()
+    else:
+        return 'コンテンツがjsonではありません'
     fissure_list = []
     for count, fissure in enumerate(r):
         fissure_node = fissure.get('node')
