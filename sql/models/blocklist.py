@@ -7,6 +7,8 @@ from settings import Base, engine
 class BlocklistServer(Base):
     __tablename__ = 'blocklist_server'
     server_id = Column(BIGINT, primary_key=True)
+    blocklist_settings = relationship("BlocklistSettings", backref='blocklist_settings', lazy='dynamic', cascade="all, delete-orphan")
+
 
     @property
     def serialize(self):
