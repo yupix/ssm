@@ -1,12 +1,15 @@
 import configparser
 import os
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
+if os.path.exists('.env') is True:
+	load_dotenv('.env')
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('./config.ini', encoding='utf-8')
 

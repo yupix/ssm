@@ -14,9 +14,7 @@ psycopg2
 feedparser
 numpy
 googletrans==4.0.0-rc1
-sqlalchemy
-pymysql
-psycopg2
-feedparser
-numpy
-googletrans==4.0.0-rc1
+fastapi
+uvicorn
+Quart
+sanic
