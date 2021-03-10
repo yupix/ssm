@@ -38,6 +38,3 @@ class WarframeFissuresMessage(Base):
     detail_id = Column(BIGINT, ForeignKey('warframe_fissures_detail.id', onupdate='CASCADE', ondelete='CASCADE'))
     channel_id = Column(BIGINT, ForeignKey('warframe_fissures_channel.channel_id', onupdate='CASCADE', ondelete='CASCADE'))
     message_id = Column(BIGINT)
-
-
-Base.metadata.create_all(engine)

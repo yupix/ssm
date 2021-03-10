@@ -18,6 +18,3 @@ class BlogsCategory(Base):
     id = Column(BIGINT, primary_key=True, autoincrement=True)
     server_id = Column(BIGINT, ForeignKey('blogs_server.server_id', onupdate='CASCADE', ondelete='CASCADE'))
     category_id = Column(BIGINT)
-
-
-Base.metadata.create_all(engine)

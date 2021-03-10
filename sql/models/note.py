@@ -43,6 +43,3 @@ class NotesDetail(Base):
             'content': self.content,
             'category_name': self.category_name,
         }
-
-
-Base.metadata.create_all(engine)

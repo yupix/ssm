@@ -40,6 +40,3 @@ class BlocklistUser(Base):
             'user_id': self.user_id,
             'mode': self.mode,
         }
-
-
-Base.metadata.create_all(engine)
