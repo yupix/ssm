@@ -18,7 +18,7 @@ from halo import Halo
 from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
-from modules.create_logger import easy_logger
+from modules.create_logger import EasyLogger
 from routers import v1
 from settings import session
 from sql.models.WarframeFissure import WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresMessage, WarframeFissuresChannel
@@ -51,7 +51,7 @@ app = VersionedFastAPI(app, version_format='{major}', prefix_format='/v{major}')
 # loggerオブジェクトの宣言
 logger = getLogger(__name__)
 
-logger = easy_logger.create(logger)
+logger = EasyLogger(logger).create()
 
 INITIAL_EXTENSIONS = [
 	'cogs.testcog',
