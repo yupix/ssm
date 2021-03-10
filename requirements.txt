@@ -8,15 +8,3 @@ beautifulsoup4
 lxml
 coloredlogs
 ffmpeg
-sqlalchemy
-pymysql
-psycopg2
-feedparser
-numpy
-googletrans==4.0.0-rc1
-fastapi
-uvicorn
-Quart
-sanic
-fastapi-versioning
-python-dotenv
