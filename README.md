@@ -1,6 +1,6 @@
 # SSM Project
 
-![ssm](https://repo.akarinext.org/assets/image/YX.png)
+![ssm](https://s3.akarinext.org/misskey/*/29af8bc0-54d3-4ac1-801c-aef2990855cc.png)
 
 ## 注意
 
