@@ -19,3 +19,4 @@ uvicorn
 Quart
 sanic
 fastapi-versioning
+python-dotenv
