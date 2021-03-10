@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
+from discord.utils import get
 
-from main import embed_send, check_url
+from main import db_search, db_reformat, db_cursor, cnx, db_delete, embed_send, check_url
 
 
 async def modpack_reaction(reaction, reformat_mode, user, msg, reformat_check_reaction, ogl_msg):

@@ -2,6 +2,8 @@ import subprocess
 
 import configparser
 
+from main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Spped, Output_wav_name
+
 input_file = './tmp/input.txt'  # ファイルの指定
 csv_header = ['server_id', 'before', 'after']
 
@@ -10,7 +12,6 @@ config_ini.read('config.ini', encoding='utf-8')
 
 
 def create_wave(inputText):
-    from main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Spped, Output_wav_name
     # TODO: 2020/11/22 辞書を追加
 
     with open(input_file, 'w', encoding='UTF-8') as file:

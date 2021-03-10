@@ -10,21 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - add rss command
-- add warframe command
-- add alembic support
-- add api document
-- add dependency
-- add FastApi support
+
+### Changed
+
+- change database reset method
 
 ### Fixed
 
 - fix typo
-- fix README image URL
-- fix Module syntax
 
 ### Removed
 
-- Delete finished todo
 - Removed hostlab command.
 
 ## [1.0.1] - 2020 12-05
