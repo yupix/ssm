@@ -18,17 +18,7 @@
 
 open-jtalkが別途必要です
 
-### 推奨: Dockerに構築（一部機能が利用不可）
-
-```cmd
-git clone https://github.com/yupix/ssm.git
-
-#.configとdocker-compose.ymlを変更する
-docker-compose build
-docker-compose up -d
-```
-
-### 非推奨: ホストに構築（すべての機能が利用可能）
+### 推奨: ホストに構築（すべての機能が利用可能）
 
 ```cmd
 git clone <https://github.com/yupix/ssm.git>
@@ -36,10 +26,6 @@ git clone <https://github.com/yupix/ssm.git>
 cd ssm
 python main.py
 ```
-
-## データベース定義に関して(参考になりません)
-
-データベース定義に関しては [こちら](./doc/schema)をご覧ください。
 
 ## コマンド一覧
 
