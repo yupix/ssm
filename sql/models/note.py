@@ -29,7 +29,7 @@ class NotesDetail(Base):
     __tablename__ = 'notes_detail'
     __table_args__ = (UniqueConstraint('user_id', 'content', 'category_name'),)
 
-    id = Column(BIGINT, primary_key=True, autoincrement=True)  # TODO: 2021/01/15/ 複合キーになっているため、ここを修正しないとカテゴリとコンテンツによる複合がきちんと機能しない
+    id = Column(BIGINT, primary_key=True, autoincrement=True)
     user_id = Column(BIGINT, ForeignKey('notes_user.user_id', onupdate='CASCADE', ondelete='CASCADE'))
     content = Column(VARCHAR(255))
     category_name = Column(VARCHAR(255))
