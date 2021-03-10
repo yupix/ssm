@@ -38,8 +38,9 @@ def challenge_title_conversion(challenge_title):
 					   'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
 					   'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
 					   'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者', 'Patron': 'パトロン',
-					   'Silent Eliminator': '静かな駆逐者', 'Trampoline': 'トランポリン', 'Sword Dance': '剣の舞', 'Earth Bounty Hunter': '地球のバウンティハンター',
-					   'Unlock Relics': 'レリックの開放', 'Earth Fisher': '地球の釣り人', 'Eximus Executioner': 'エクシマス処刑人'
+					   'Silent': '静かな', 'Trampoline': 'トランポリン', 'Sword Dance': '剣の舞', 'Earth Bounty Hunter': '地球のバウンティハンター',
+					   'Unlock Relics': 'レリックの開放', 'Earth Fisher': '地球の釣り人', 'Eximus Executioner': 'エクシマス処刑人',
+					   'Season Weekly Isolation Bounties': '隔離庫ハンター', 'Energizing':'精力満々'
 					   }
 
 	for conversion in conversion_list.keys():
@@ -85,7 +86,9 @@ def challenge_desc_conversion(challenge_desc):
 					   'Complete 5 different Bounties in the Plains of Eidolon': 'エイドロンの草原で異なる依頼ミッションを5回クリアする',
 					   'Unlock 3 Relics': 'レリックを3個開放する',
 					   'Catch 6 Rare Fish in the Plains of Eidolon': 'エイドロンの草原で6匹のレアな魚を捕まえる',
-					   'Kill 100 Eximus': '100体のエクシマスを倒す'
+					   'Kill 100 Eximus': '100体のエクシマスを倒す',
+					   '[PH] Season Weekly Isolation Bounties Desc': 'ダイモスで隔離庫依頼ミッションをクリアする',
+					   'Pick up 20 Energy Orbs': '20個のエネルギーオーブを拾う'
 					   }
 	for conversion in conversion_list.keys():
 		challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])

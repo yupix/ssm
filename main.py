@@ -6,28 +6,20 @@ import re
 import traceback
 import typing
 import urllib
-
-import uvicorn
-from aiohttp import web
-
-from datetime import datetime
 from distutils.util import strtobool
 from logging import getLogger
-from threading import Thread
 
 import discord
-import requests
-import uuid as uuid
 from discord.ext import commands, tasks
 from fastapi import FastAPI
+from fastapi_versioning import VersionedFastAPI
 from googletrans import Translator
 from halo import Halo
-from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
 from modules.create_logger import easy_logger
-from routers import servers
+from routers import v1
 from settings import session
 from sql.models.WarframeFissure import WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresMessage, WarframeFissuresChannel
 
@@ -50,8 +42,9 @@ Output_wav_name = config_ini['JTALK']['Output_wav_name']
 Spped = config_ini['JTALK']['Spped']
 show_bot_chat_log = config_ini['OPTIONS']['show_bot_chat_log']
 
-app = FastAPI()
-
+app = FastAPI(title=f'{bot_user} API')
+app.include_router(v1.servers.router)
+app = VersionedFastAPI(app, version_format='{major}', prefix_format='/v{major}')
 # --------------------------------
 # 1.loggerの設定
 # --------------------------------
@@ -173,8 +166,8 @@ def json_load(path):
 
 
 @tasks.loop(seconds=60)
-async def bot_loop():
-	from cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_type_conversion, mission_eta_conversion
+async def loop_bot():
+	from cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
 
 	async def fissure_check():
 		for fissure in session.query(WarframeFissuresDetail).order_by(WarframeFissuresDetail.tier):
@@ -238,8 +231,6 @@ async def bot_loop():
 			await db_commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete')
 
 
-
-
 class ssm(commands.Bot):
 
 	def __init__(self, command_prefix, intents):
@@ -253,7 +244,7 @@ class ssm(commands.Bot):
 
 	async def on_ready(self):
 		spinner.stop()
-		# bot_loop.start()
+		loop_bot.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
@@ -275,8 +266,7 @@ async def bot_run(bot_loop):
 async def api_run(loop1):
 	print('api')
 	asyncio.set_event_loop(loop1)
-	app.include_router(servers.router)
-	config = Config(app=app, host="0.0.0.0", loop=loop1, port=5000, debug=True)
+	config = Config(app=app, host="0.0.0.0", loop=loop1, port=5000, reload=True)
 	server = Server(config)
 	await server.serve()
 

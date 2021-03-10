@@ -20,6 +20,8 @@ class WarframeFissuresDetail(Base):
     enemy = Column(VARCHAR(255))
     type = Column(VARCHAR(255))
     tier = Column(VARCHAR(255))
+    tier_original = Column(VARCHAR(255))
+    star_name = Column(VARCHAR(255))
     eta = Column(VARCHAR(255))
     status = Column(VARCHAR(255))
     warframe_fissures_message = relationship("WarframeFissuresMessage", backref='warframe_fissures_detail', lazy='dynamic',  cascade="all, delete-orphan")
