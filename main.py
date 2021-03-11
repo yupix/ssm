@@ -18,10 +18,12 @@ from halo import Halo
 from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
+from base import logger
 from modules.create_logger import EasyLogger
 from routers import v1
 from settings import session
 from sql.models.WarframeFissure import WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresMessage, WarframeFissuresChannel
+from sql.models.api import ApiRequests, ApiDetail
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('./config.ini', encoding='utf-8')
@@ -45,13 +47,6 @@ show_bot_chat_log = config_ini['OPTIONS']['show_bot_chat_log']
 app = FastAPI(title=f'{bot_user} API')
 app.include_router(v1.servers.router)
 app = VersionedFastAPI(app, version_format='{major}', prefix_format='/v{major}')
-# --------------------------------
-# 1.loggerの設定
-# --------------------------------
-# loggerオブジェクトの宣言
-logger = getLogger(__name__)
-
-logger = EasyLogger(logger).create()
 
 INITIAL_EXTENSIONS = [
 	'cogs.testcog',
@@ -165,6 +160,44 @@ def json_load(path):
 	return json_load
 
 
+@tasks.loop(seconds=2)
+async def api_request():
+	check_requests = session.query(ApiRequests).all()
+	for request in check_requests:
+		print(request.request_content)
+		if request.type == 'server_info':
+			if request.request_content is None:
+				content = {
+					"result": {
+						"type": "failed",
+						"text": "invalid server id"
+					}
+				}
+			else:
+				guild = bot.get_guild(request.request_content['server_id'])
+				if guild is None:
+					content = {
+						"result": {
+							"type": "failed",
+							"text": "invalid server id"
+						}
+					}
+				else:
+					content = {
+						"result": {
+							"type": "successful"
+						},
+						"body":{
+							"icon_url": f"{guild.icon_url}",
+							"name": f"{guild.name}"
+						}
+					}
+			await db_commit(ApiDetail(request_id=request.request_id, content=content))
+			await db_commit(session.query(ApiRequests).filter(ApiRequests.request_id==request.request_id).delete(), commit_type='delete')
+		if request.request_content is not None:
+			print(request.request_content['server_id'])
+
+
 @tasks.loop(seconds=60)
 async def loop_bot():
 	from cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
@@ -245,6 +278,7 @@ class ssm(commands.Bot):
 	async def on_ready(self):
 		spinner.stop()
 		loop_bot.start()
+		api_request.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
