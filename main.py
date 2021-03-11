@@ -86,7 +86,7 @@ def check_args(argument):
 	hit = None
 	args_list = {}
 	for i in split_argument:
-		if i == '--type' or i == '--test2' or i == '--max' or i == '-c' or i == '--register' or hit is not None:
+		if i == '--type' or i == '--test2' or i == '--max' or i == '-c' or i == '--register' or i == '--translate' or hit is not None:
 			hit, args_list = add_list(hit, i, args_list)
 
 	else:

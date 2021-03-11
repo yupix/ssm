@@ -19,7 +19,7 @@ def warframe_fissures_embed(mission_title, mission_type, appear_enemy, drop_reli
 
 def mission_type_conversion(fissure_mission_type):
 	conversion_list = {'Spy': '潜入', 'Capture': '確保', 'Survival': '耐久', 'Sabotage': '妨害', 'Defense': '防衛', 'Extermination': '殲滅', 'Rescue': '救出',
-					   'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック'}
+	                   'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック'}
 	for conversion in conversion_list.keys():
 		if fissure_mission_type == conversion:
 			return fissure_mission_type.replace(conversion, conversion_list[f'{conversion}'])
@@ -34,14 +34,17 @@ def mission_eta_conversion(fissure_eta):
 
 def challenge_title_conversion(challenge_title):
 	conversion_list = {'Loyalty': '忠誠心', 'Detonator': '爆弾魔', 'Sidearm': 'サイドアーム', 'Cache Hunter': '貯蔵庫ハンター', 'Jailer': '投獄者',
-					   'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
-					   'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
-					   'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
-					   'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者', 'Patron': 'パトロン',
-					   'Silent': '静かな', 'Trampoline': 'トランポリン', 'Sword Dance': '剣の舞', 'Earth Bounty Hunter': '地球のバウンティハンター',
-					   'Unlock Relics': 'レリックの開放', 'Earth Fisher': '地球の釣り人', 'Eximus Executioner': 'エクシマス処刑人',
-					   'Season Weekly Isolation Bounties': '隔離庫ハンター', 'Energizing':'精力満々'
-					   }
+	                   'Invader': '侵略者', 'Friendly Fire': '誤射', 'Flawless': 'パーフェクト', 'Elite Explorer': 'エリート探検者',
+	                   'Choose Wisely': '決断', 'Swordsman': '剣客', 'Hacker': 'ハッカー', 'Biohazard': 'バイオハザード',
+	                   'Eximus Eliminator': 'エクシマス駆逐者', 'Conservationist': '保護主義者', 'Rescuer': '救出者', 'Now Boarding': '搭乗時刻',
+	                   'Defense': '防衛', 'Nothing but Profit': '利益こそ正義', 'Eliminator': '駆逐者', 'Poisoner': '毒殺者', 'Patron': 'パトロン',
+	                   'Silent': '静かな', 'Trampoline': 'トランポリン', 'Sword Dance': '剣の舞', 'Earth Bounty Hunter': '地球のバウンティハンター',
+	                   'Unlock Relics': 'レリックの開放', 'Earth Fisher': '地球の釣り人', 'Eximus Executioner': 'エクシマス処刑人',
+	                   'Season Weekly Isolation Bounties': '隔離庫ハンター', 'Energizing': '精力満々', 'Mow Them Down': '薙ぎ払え',
+	                   'Kleptomaniac': '窃盗狂', 'Enhance!': '装備強化', 'Earth Miner': '地球の採掘人', 'Venus Bounty Hunter': '金星のバウンティーハンター',
+	                   'Good Friend': '良き友', 'Sanctuary Researcher': 'サンクチュアリ研究者', 'Day Trader': 'デイ・トレーダー', 'Night Terror': '夜の恐怖',
+	                   'Short Circuit': '回路のショート'
+	                   }
 
 	for conversion in conversion_list.keys():
 		challenge_title = challenge_title.replace(conversion, conversion_list[f'{conversion}'])
@@ -59,37 +62,47 @@ def fissure_tier_conversion(tier):
 
 def challenge_desc_conversion(challenge_desc):
 	conversion_list = {'Interact with your Kubrow or Kavat': 'クブロウかキャバットと触れ合う',
-					   'Kill 150 Enemies with Blast Damage': '150体の敵を爆発ダメージで倒す',
-					   'Complete a Mission with only a Secondary Weapon equipped': 'セカンダリ武器のみを装備しミッションをクリアする',
-					   'Find all caches in 3 Sabotage missions': '3回の妨害ミッションですべての貯蔵庫を見つける',
-					   'Complete 3 Capture missions': '確保ミッションを3回クリアする',
-					   'Complete 9 Invasion missions of any type': '侵略ミッションを9回クリアする',
-					   'While piloting a hijacked Crewship, destroy 3 enemy Fighters': 'ハイジャックしたクルーシップを操縦中に敵の戦闘機を3機倒す',
-					   'Clear a Railjack Boarding Party without your Warframe taking damage': 'WARFRAMEがダメージを受けずにレールジャック搭乗部隊をクリアする',
-					   'Complete 8 Railjack Missions': 'レールジャックミッションを8回クリアする',
-					   'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる',
-					   'Complete a Mission with only a Melee Weapon equipped': '近接武器のみを装備しミッションをクリアする',
-					   'Hack 8 Consoles': 'コンソールを8個ハッキングする',
-					   'Kill 150 Enemies with Gas Damage': '150体の敵をガスダメージで倒す',
-					   'Kill 30 Eximus': '30体のエクシマスを倒す',
-					   'Complete 6 different Perfect Animal Captures in Orb Vallis': 'オーブ峡谷で完璧な異なる動物保護を6回クリアする',
-					   'Complete 3 Rescue missions': '救出ミッションを3回クリアする',
-					   'Complete 3 different K-Drive races in Orb Vallis': 'オーブ峡谷で3つの異なるK-ドライブレースを完了する',
-					   'Complete a Defense mission reaching at least Wave 20': '防衛ミッションを最低20ウェーブまで進めてクリアする',
-					   'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す',
-					   'Complete 3 Exterminate missions': '掃滅ミッションを3回クリアする',
-					   'Kill 150 Enemies with Toxin Damage': '150体の敵を毒ダメージで倒す',
-					   'Donate to the Leverian': 'レベリアンに寄付する',
-					   'Complete an Extermination mission with level 30 or higher enemies without being detected': 'アラームを起動せずにレベル30以上の敵のみが生産される掃滅ミッションをクリアする',
-					   'Bullet Jump 150 times': '150回バレットジャンプする',
-					   'Kill 150 Enemies with a Melee Weapon': '150台の敵を近接武器で倒す',
-					   'Complete 5 different Bounties in the Plains of Eidolon': 'エイドロンの草原で異なる依頼ミッションを5回クリアする',
-					   'Unlock 3 Relics': 'レリックを3個開放する',
-					   'Catch 6 Rare Fish in the Plains of Eidolon': 'エイドロンの草原で6匹のレアな魚を捕まえる',
-					   'Kill 100 Eximus': '100体のエクシマスを倒す',
-					   '[PH] Season Weekly Isolation Bounties Desc': 'ダイモスで隔離庫依頼ミッションをクリアする',
-					   'Pick up 20 Energy Orbs': '20個のエネルギーオーブを拾う'
-					   }
+	                   'Kill 150 Enemies with Blast Damage': '150体の敵を爆発ダメージで倒す',
+	                   'Complete a Mission with only a Secondary Weapon equipped': 'セカンダリ武器のみを装備しミッションをクリアする',
+	                   'Find all caches in 3 Sabotage missions': '3回の妨害ミッションですべての貯蔵庫を見つける',
+	                   'Complete 3 Capture missions': '確保ミッションを3回クリアする',
+	                   'Complete 9 Invasion missions of any type': '侵略ミッションを9回クリアする',
+	                   'While piloting a hijacked Crewship, destroy 3 enemy Fighters': 'ハイジャックしたクルーシップを操縦中に敵の戦闘機を3機倒す',
+	                   'Clear a Railjack Boarding Party without your Warframe taking damage': 'WARFRAMEがダメージを受けずにレールジャック搭乗部隊をクリアする',
+	                   'Complete 8 Railjack Missions': 'レールジャックミッションを8回クリアする',
+	                   'Kill or Convert a Kuva Lich': 'クバリッチを抹殺もしくは転向させる',
+	                   'Complete a Mission with only a Melee Weapon equipped': '近接武器のみを装備しミッションをクリアする',
+	                   'Hack 8 Consoles': 'コンソールを8個ハッキングする',
+	                   'Kill 150 Enemies with Gas Damage': '150体の敵をガスダメージで倒す',
+	                   'Kill 30 Eximus': '30体のエクシマスを倒す',
+	                   'Complete 6 different Perfect Animal Captures in Orb Vallis': 'オーブ峡谷で完璧な異なる動物保護を6回クリアする',
+	                   'Complete 3 Rescue missions': '救出ミッションを3回クリアする',
+	                   'Complete 3 different K-Drive races in Orb Vallis': 'オーブ峡谷で3つの異なるK-ドライブレースを完了する',
+	                   'Complete a Defense mission reaching at least Wave 20': '防衛ミッションを最低20ウェーブまで進めてクリアする',
+	                   'Kill The Exploiter Orb': 'エクスプロイターオーブを倒す',
+	                   'Complete 3 Exterminate missions': '掃滅ミッションを3回クリアする',
+	                   'Kill 150 Enemies with Toxin Damage': '150体の敵を毒ダメージで倒す',
+	                   'Donate to the Leverian': 'レベリアンに寄付する',
+	                   'Complete an Extermination mission with level 30 or higher enemies without being detected': 'アラームを起動せずにレベル30以上の敵のみが生産される掃滅ミッションをクリアする',
+	                   'Bullet Jump 150 times': '150回バレットジャンプする',
+	                   'Kill 150 Enemies with a Melee Weapon': '150台の敵を近接武器で倒す',
+	                   'Complete 5 different Bounties in the Plains of Eidolon': 'エイドロンの草原で異なる依頼ミッションを5回クリアする',
+	                   'Unlock 3 Relics': 'レリックを3個開放する',
+	                   'Catch 6 Rare Fish in the Plains of Eidolon': 'エイドロンの草原で6匹のレアな魚を捕まえる',
+	                   'Kill 100 Eximus': '100体のエクシマスを倒す',
+	                   '[PH] Season Weekly Isolation Bounties Desc': 'ダイモスで隔離庫依頼ミッションをクリアする',
+	                   'Pick up 20 Energy Orbs': '20個のエネルギーオーブを拾う',
+	                   'Kill 150 Enemies with Electricity Damage': '150体の敵を電気ダメージで倒す',
+	                   'Kill 150 Enemies with a Primary Weapon': '150体の敵をプライマリ武器で倒す',
+	                   'Open 20 lockers': '20個のロッカーを開ける',
+	                   'Pick up 8 Rare Mods': 'レアModを8個拾う',
+	                   'Mine 6 Rare Gems in the Plains of Eidolon': 'エイドロンの草原でレア宝石か鉱石を6個掘る',
+	                   'Complete 5 different bounties in the Orb Vallis': 'オーブ峡谷で異なる依頼ミッションを5回クリアする',
+	                   'Help Clem with his weekly mission': 'Clemをウィークリーミッションで手助けする',
+	                   'Complete 5 Scans for Cephalon Simaris': 'Cephalon Simarisのためにスキャンを5回達成する',
+	                   'Win 3 wagers in a row without letting the enemy score in one match of The Index.': 'インデックスの1試合で敵にスコアを取らせず3回連続で賭けを勝ち抜く',
+	                   'Complete 10 Nightmare missions of any type': 'ナイトメアミッションを10回クリアする'
+	                   }
 	for conversion in conversion_list.keys():
 		challenge_desc = challenge_desc.replace(conversion, conversion_list[f'{conversion}'])
 	return challenge_desc
@@ -163,15 +176,29 @@ class BlocklistCog(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@warframe.command()
-	async def nightwave(self, ctx):
+	async def nightwave(self, ctx, translate=None):
+		if translate is not None:
+			if '--translate' in translate:
+				translate = True
+		else:
+			translate = False
 		url = 'https://api.warframestat.us/pc/nightwave'
 		r = requests.get(url).json()
 		embed = discord.Embed(color=0x859fff)
+		title = {}
+		desc = {}
 		for count, nightwave in enumerate(r['activeChallenges']):
 			challenge_title = nightwave['title']
 			challenge_desc = nightwave['desc']
+			title.setdefault(challenge_title, '')
+			desc.setdefault(challenge_desc, '')
 			embed.add_field(name=f"{challenge_title_conversion(challenge_title)}", value=f"{challenge_desc_conversion(challenge_desc)}", inline=True)
-		await ctx.send(embed=embed)
+		if translate is True:
+			await ctx.send('翻訳に興味がおありですか？ありがとうございます！以下の空白部分に日本語訳した文を挿入して作者にメンションをください！')
+			await ctx.send('```' + str(title).replace(',', ',\n') + '```')
+			await ctx.send('```' + str(desc).replace(',', ',\n') + '```')
+		else:
+			await ctx.send(embed=embed)
 
 	@warframe.command()
 	async def sortie(self, ctx):
