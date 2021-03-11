@@ -5,13 +5,14 @@ from logging import getLogger, StreamHandler, DEBUG, Formatter, addLevelName
 
 
 class EasyLogger:
-	def __init__(self, logger=None):
+	def __init__(self, logger=None, logger_level='INFO'):
 		self.logger = logger
+		self.logger_level = logger_level
 
 	def create(self):
 		"""create logger"""
 		# loggerのログレベル設定(ハンドラに渡すエラーメッセージのレベル)
-		self.logger.setLevel(DEBUG)
+		self.logger.setLevel(self.logger_level)
 
 		# --------------------------------
 		# 2.handlerの設定
@@ -20,7 +21,7 @@ class EasyLogger:
 		stream_handler = StreamHandler()
 
 		# handlerのログレベル設定(ハンドラが出力するエラーメッセージのレベル)
-		stream_handler.setLevel(DEBUG)
+		stream_handler.setLevel(self.logger_level)
 
 		# --------------------------------
 		# 3.loggerにhandlerをセット
@@ -46,7 +47,7 @@ class EasyLogger:
 		                                    'verbose': {'color': 'blue'}
 		                                    }
 
-		coloredlogs.install(level='DEBUG', logger=self.logger, fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
+		coloredlogs.install(level=f'{self.logger_level}', logger=self.logger, fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y/%m/%d %H:%M:%S')
 
 		# SUCCESSを追加
 		self.logger.SUCCESS = 25  # WARNINGとINFOの間
