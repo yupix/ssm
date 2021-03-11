@@ -13,6 +13,5 @@ class ApiCog(commands.Cog):
 		return 'test'
 
 
-
 def setup(bot):
 	bot.add_cog(ApiCog(bot))

@@ -18,7 +18,6 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-base_model_path = 'sql.models'
 target_models = [
 	'sql.models.api',
 	'sql.models.basic',
