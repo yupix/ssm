@@ -16,17 +16,23 @@
 
 open-jtalkが別途必要です
 
-### 推奨: Dockerに構築（一部機能が利用不可）
+#### プロジェクト直下に.envを設置し以下の項目を設定する(必須)
 
-```cmd
-git clone https://github.com/yupix/ssm.git
+```
+# Bot情報
+SSM_BOT_TOKEN = DiscordBotのトークン
 
-#.configとdocker-compose.ymlを変更する
-docker-compose build
-docker-compose up -d
+# データベース周り
+SSM_DB_USER = データベースのユーザー
+SSM_DB_PASSWORD = 上記で設定したユーザーのパスワード
+
+# 読み上げ機能（保守されていないのでNoneで問題ない）
+SSM_JTALK_DIC_PATH = None
+SSM_VOICE_PATH = None
+SSM_JTALK_BIN_PATH = None
 ```
 
-### 非推奨: ホストに構築（すべての機能が利用可能）
+### 推奨: ホストに構築（すべての機能が利用可能）
 
 ```cmd
 git clone <https://github.com/yupix/ssm.git>
