@@ -36,6 +36,7 @@ bot_token = config_ini['DEFAULT']['Token']
 reset_status = config_ini['RESET']['Status']
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
+use_api = config_ini['API']['use']
 
 Dic_Path = config_ini['JTALK']['Dic_Path']
 Voice_Path = config_ini['JTALK']['Voice_Path']
@@ -278,7 +279,7 @@ class ssm(commands.Bot):
 	async def on_ready(self):
 		spinner.stop()
 		loop_bot.start()
-		api_request.start()
+		if use_api is True: api_request.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
@@ -318,5 +319,8 @@ if __name__ == "__main__":
 	spinner.start()
 
 	loop1 = asyncio.new_event_loop()
-	future = asyncio.gather(bot_run(bot_loop), api_run(loop1))
+	if use_api is True:
+		future = asyncio.gather(bot_run(bot_loop), api_run(loop1))
+	else:
+		future = asyncio.gather(bot_run(bot_loop))
 	bot_loop.run_until_complete(future)
