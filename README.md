@@ -1,11 +1,13 @@
 # SSM Project
 
-![ssm](https://repo.akarinext.org/assets/image/YX.png)
+![ssm](https://s3.akarinext.org/misskey/*/29af8bc0-54d3-4ac1-801c-aef2990855cc.png)
 
 ## 注意
 
 1. このbranchが`testing`の場合作成途中のものや、そもそも動かないことが多々あるため推奨していません
-2. このREADMEの更新は非常に遅れており、コマンドなども一切更新ができていません
+2. このbranchが`database-testing`の場合はデータベースへの大型変更を行っているため、絶対に使用しないでください。
+   2.5 現在テスト中のため、postgresql以外でのサポートは受け付けません。
+3. このREADMEの更新は非常に遅れており、コマンドなども一切更新ができていません
 
 ## 概要
 
@@ -17,7 +19,6 @@
 open-jtalkが別途必要です
 
 #### プロジェクト直下に.envを設置し以下の項目を設定する(必須)
-
 ```
 # Bot情報
 SSM_BOT_TOKEN = DiscordBotのトークン
@@ -41,10 +42,22 @@ cd ssm
 python main.py
 ```
 
-## データベース定義に関して
+## APIに関して
 
-データベース定義に関しては [こちら](./doc/schema)をご覧ください。
+APIでは主にリクエストされた情報を元にIDを作成し、そのIDの処理が終わるまで待つ処理が必要です。
+理由に関しては最後に記載しますが、Apiにアクセスが返ってきたIDを保存し、そのIDをリクエストのパラメーターに設定し
+以下の`result > type`がsuccessfulになるまで定期的にアクセスしてください。successfulになると新たに`body`という項目が増えそこに
+詳しい詳細情報が入っています。
+```json
+{
+   "result": {
+      "type": "waiting"
+   }
+}
+```
 
 ## コマンド一覧
 
-現在作成中
+|コマンド名|概要|
+|---|---|
+|warframe|warframeに関するメインコマンドです。サブコマンドを付与することで使用可能|
