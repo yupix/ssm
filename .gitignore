@@ -5,8 +5,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-versions
-alembic.ini
 input.txt
 output.wav
 mysql
