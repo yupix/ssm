@@ -20,6 +20,7 @@ from uvicorn import Config, Server
 
 from base import logger
 from modules.create_logger import EasyLogger
+from modules.voice_generator import create_wave
 from routers import v1
 from settings import session
 from sql.models.WarframeFissure import WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresMessage, WarframeFissuresChannel
@@ -42,7 +43,8 @@ Dic_Path = config_ini['JTALK']['Dic_Path']
 Voice_Path = config_ini['JTALK']['Voice_Path']
 Jtalk_Bin_Path = config_ini['JTALK']['Jtalk_Bin_Path']
 Output_wav_name = config_ini['JTALK']['Output_wav_name']
-Spped = config_ini['JTALK']['Spped']
+read_aloud = config_ini['JTALK']['read_aloud']
+Speed = config_ini['JTALK']['Speed']
 show_bot_chat_log = config_ini['OPTIONS']['show_bot_chat_log']
 
 app = FastAPI(title=f'{bot_user} API')
@@ -56,6 +58,7 @@ INITIAL_EXTENSIONS = [
 	'cogs.warframe',
 	'cogs.pso2',
 	'cogs.blog',
+	'cogs.read',
 ]
 
 
@@ -289,6 +292,13 @@ class ssm(commands.Bot):
 		if bool(strtobool(show_bot_chat_log)) is False and ctx.author.bot is True:
 			return
 		logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
+		if bool(strtobool(read_aloud)) is True:
+			create_wave(f'{ctx.content}')
+			source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
+			try:
+				ctx.guild.voice_client.play(source)
+			except AttributeError:
+				pass
 		await bot.process_commands(ctx)  # コマンド動作用
 
 

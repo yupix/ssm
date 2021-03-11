@@ -10,7 +10,7 @@ config_ini.read('config.ini', encoding='utf-8')
 
 
 def create_wave(inputText):
-    from main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Spped, Output_wav_name
+    from main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Speed, Output_wav_name
     # TODO: 2020/11/22 辞書を追加
 
     with open(input_file, 'w', encoding='UTF-8') as file:
@@ -18,7 +18,7 @@ def create_wave(inputText):
 
     command = '{c} -x {x} -m {m} -r {r} -ow {ow} {input_file}'
 
-    args = {'c': Jtalk_Bin_Path, 'x': Dic_Path, 'm': Voice_Path, 'r': Spped, 'ow': Output_wav_name, 'input_file': input_file}
+    args = {'c': Jtalk_Bin_Path, 'x': Dic_Path, 'm': Voice_Path, 'r': Speed, 'ow': Output_wav_name, 'input_file': input_file}
 
     cmd = command.format(**args)
     print(cmd)
