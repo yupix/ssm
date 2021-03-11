@@ -279,7 +279,7 @@ class ssm(commands.Bot):
 	async def on_ready(self):
 		spinner.stop()
 		loop_bot.start()
-		if use_api is True: api_request.start()
+		if bool(use_api) is True: api_request.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 	spinner.start()
 
 	loop1 = asyncio.new_event_loop()
-	if use_api is True:
+	if bool(use_api) is True:
 		future = asyncio.gather(bot_run(bot_loop), api_run(loop1))
 	else:
 		future = asyncio.gather(bot_run(bot_loop))
