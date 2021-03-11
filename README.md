@@ -18,6 +18,21 @@
 
 open-jtalkが別途必要です
 
+#### プロジェクト直下に.envを設置し以下の項目を設定する(必須)
+```
+# Bot情報
+SSM_BOT_TOKEN = DiscordBotのトークン
+
+# データベース周り
+SSM_DB_USER = データベースのユーザー
+SSM_DB_PASSWORD = 上記で設定したユーザーのパスワード
+
+# 読み上げ機能（保守されていないのでNoneで問題ない）
+SSM_JTALK_DIC_PATH = None
+SSM_VOICE_PATH = None
+SSM_JTALK_BIN_PATH = None
+```
+
 ### 推奨: ホストに構築（すべての機能が利用可能）
 
 ```cmd
