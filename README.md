@@ -17,6 +17,7 @@
 open-jtalkが別途必要です
 
 #### プロジェクト直下に.envを設置し以下の項目を設定する(必須)
+
 ```
 # Bot情報
 SSM_BOT_TOKEN = DiscordBotのトークン
