@@ -49,6 +49,6 @@ EOF
 	;;
 '4')
 	rm -rf ./alembic/versions/*
-;;
+	;;
 
 esac
