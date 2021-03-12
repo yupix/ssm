@@ -1,11 +1,12 @@
 import asyncio
+import traceback
 
 import discord
 from discord.ext import commands
 from discord.utils import get
 
 from cogs.blocklist import blog_reaction
-from main import logger, Output_wav_name
+from main import logger, Output_wav_name, INITIAL_EXTENSIONS, embed_send
 from modules.voice_generator import create_wave
 
 
@@ -16,7 +17,23 @@ class BasicCog(commands.Cog):
 
 	@commands.command()
 	async def ping(self, ctx):
-		await ctx.channel.send(f'ping: {round(self.bot.latency * 1000)}ms ')
+		await ctx.channel.send(f'ping: {round(self.bot.latency * 1000)}ms')
+
+	@commands.command(name='reload')
+	@commands.is_owner()
+	async def reload(self, ctx):
+		for cog in INITIAL_EXTENSIONS:
+			try:
+				self.bot.reload_extension(cog)
+			except Exception:
+				traceback.print_exc()
+		await embed_send(ctx, self.bot, 0, '成功', 'リロードに成功しました！')
+		return ctx
+
+	@reload.error
+	async def reload_error(self, ctx, error):
+		if isinstance(error, commands.CheckFailure):
+			await embed_send(ctx, self.bot, 1, '失敗', 'このコマンドはBotの所有者のみが実行できます')
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
@@ -135,8 +152,10 @@ class BasicCog(commands.Cog):
 			elif check_command == 'modpack':
 				await modpack_reaction(reaction, check_mode, user, msg, search_reaction, ogl_msg)
 			"""
-	# elif reformat_command == 'basic':
-	# await basic_reaction(reaction, check_mode, user, msg, search_reaction, ogl_msg)
+
+
+# elif reformat_command == 'basic':
+# await basic_reaction(reaction, check_mode, user, msg, search_reaction, ogl_msg)
 
 
 def setup(bot):

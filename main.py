@@ -7,7 +7,6 @@ import traceback
 import typing
 import urllib
 from distutils.util import strtobool
-from logging import getLogger
 
 import discord
 from discord.ext import commands, tasks
@@ -19,7 +18,6 @@ from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
 from base import logger
-from modules.create_logger import EasyLogger
 from modules.voice_generator import create_wave
 from routers import v1
 from settings import session
@@ -59,6 +57,7 @@ INITIAL_EXTENSIONS = [
 	'cogs.pso2',
 	'cogs.blog',
 	'cogs.read',
+	'cogs.basic',
 ]
 
 
@@ -267,8 +266,7 @@ async def loop_bot():
 		if bool(strtobool(test.status)) is True:
 			await db_commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete')
 
-
-class ssm(commands.Bot):
+class Ssm(commands.Bot):
 
 	def __init__(self, command_prefix, intents):
 		super().__init__(command_prefix, help_command=None, description=None, intents=intents)
@@ -320,7 +318,7 @@ if __name__ == "__main__":
 	bot_loop = asyncio.new_event_loop()
 	asyncio.set_event_loop(bot_loop)
 	intents = discord.Intents.all()
-	bot = ssm(command_prefix=f'{bot_prefix}', intents=intents)
+	bot = Ssm(command_prefix=f'{bot_prefix}', intents=intents)
 	spinner = Halo(text='Loading Now',
 	               spinner={
 		               'interval': 300,
