@@ -267,7 +267,9 @@ class Ssm(commands.Bot):
 		if bool(strtobool(show_bot_chat_log)) is False and ctx.author.bot is True:
 			return
 		logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
-		if bool(strtobool(read_aloud)) is True:
+		check_voice_channel = discord.utils.get(self.voice_clients, guild=ctx.guild)  # This allows for more functionality with voice channels
+
+		if bool(strtobool(read_aloud)) is True and check_voice_channel is not None:
 			create_wave(f'{ctx.content}')
 			source = discord.FFmpegPCMAudio(f"{Output_wav_name}")
 			try:
