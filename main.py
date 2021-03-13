@@ -14,7 +14,6 @@ from fastapi import FastAPI
 from fastapi_versioning import VersionedFastAPI
 from googletrans import Translator
 from halo import Halo
-from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
 from base import logger, db_manager
@@ -199,9 +198,9 @@ async def loop_bot():
 		for fissures in fissure_list:
 			search_warframe_fissure_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{warframe_fissure_id.api_id}').first()
 			if warframe_fissure_id.api_id != fissures[5]:
-				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'True'), commit_type='update')
+				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'True'), commit_type='update', show_commit_log=False)
 			else:
-				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'False'), commit_type='update')
+				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'False'), commit_type='update', show_commit_log=False)
 				break
 
 	# API側で期限切れになっている亀裂がないかを確認
@@ -209,14 +208,14 @@ async def loop_bot():
 		if i[6] is not True:
 			check_warframe_fissure_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{i[5]}').first()
 			if not check_warframe_fissure_detail or check_warframe_fissure_detail.api_id != f'{i[5]}':
-				await db_manager.commit(WarframeFissuresId(api_id=f'{i[5]}'))
+				await db_manager.commit(WarframeFissuresId(api_id=f'{i[5]}'), show_commit_log=False)
 				star_name = str(re.findall("(?<=\().+?(?=\))", i[0])).replace('{', '').replace('}', '').replace('[', '').replace(']', '').replace('\'', '')
 				await db_manager.commit(
 					WarframeFissuresDetail(api_id=f'{i[5]}', node=f'{i[0]}', enemy=f'{i[2]}', type=f'{i[1]}', tier=f'{i[3]}', tier_original=f'{fissure_tier_conversion(i[3])}', star_name=star_name,
-					                       eta=f'{i[4]}', status=f'{i[6]}'))
+					                       eta=f'{i[4]}', status=f'{i[6]}'), show_commit_log=False)
 			else:
-				await db_manager.commit(setattr(check_warframe_fissure_detail, 'eta', f'{i[4]}'), commit_type='update')
-				await db_manager.commit(setattr(check_warframe_fissure_detail, 'status', f'{i[6]}'), commit_type='update')
+				await db_manager.commit(setattr(check_warframe_fissure_detail, 'eta', f'{i[4]}'), commit_type='update', show_commit_log=False)
+				await db_manager.commit(setattr(check_warframe_fissure_detail, 'status', f'{i[6]}'), commit_type='update', show_commit_log=False)
 
 	# 新しい亀裂が登録されてるチャンネルに送信されてない場合は送信
 	for fissure_id in session.query(WarframeFissuresDetail).order_by(WarframeFissuresDetail.tier):
@@ -226,7 +225,7 @@ async def loop_bot():
 				channel = bot.get_channel(int(fissure_channel.channel_id))
 				embed = warframe_fissures_embed(fissure_id.node, fissure_id.type, fissure_id.enemy, fissure_tier_conversion(fissure_id.tier), mission_eta_conversion(fissure_id.eta))
 				send_embed = await channel.send(embed=embed)
-				await db_manager.commit(WarframeFissuresMessage(detail_id=fissure_id.id, message_id=send_embed.id, channel_id=send_embed.channel.id))
+				await db_manager.commit(WarframeFissuresMessage(detail_id=fissure_id.id, message_id=send_embed.id, channel_id=send_embed.channel.id), show_commit_log=False)
 				break
 	for message in session.query(WarframeFissuresMessage).order_by(WarframeFissuresMessage.id):
 		message_search_result, fissure = await fissure_check()
@@ -242,7 +241,7 @@ async def loop_bot():
 	# データに登録されている亀裂が期限切れになっていないかを確認
 	for test in session.query(WarframeFissuresDetail).all():
 		if bool(strtobool(test.status)) is True:
-			await db_manager.commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete')
+			await db_manager.commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete', show_commit_log=False)
 
 class Ssm(commands.Bot):
 
