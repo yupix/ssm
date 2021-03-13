@@ -24,7 +24,7 @@ async def server_info(server_id: int, waiting_id: int = None) -> dict:
 			return check_completed.content
 	request_id = random.randrange(10 ** 10, 10 ** 11)
 	content = {'server_id': server_id}
-	await db_manager.db_commit(ApiRequests(request_id=request_id, type='server_info', request_content=content), autoincrement=True)
+	await db_manager.commit(ApiRequests(request_id=request_id, type='server_info', request_content=content), autoincrement=True)
 
 	return {"result": {"type": "waiting", "id": f"{request_id}"}}
 # return {"body": {"type": "info", "server": {"name": "test"}}}
