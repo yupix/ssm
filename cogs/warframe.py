@@ -3,7 +3,8 @@ import numpy as np
 import requests
 from discord.ext import commands
 
-from main import translator, db_commit, check_args, logger
+from base import db_manager
+from main import translator, check_args, logger
 from settings import session
 from sql.models.WarframeFissure import WarframeFissuresMessage, WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresChannel
 from sql.models.blog import BlogsServer, BlogsCategory
@@ -159,8 +160,8 @@ class BlocklistCog(commands.Cog):
 
 	@warframe.command()
 	async def event(self, ctx):
-		await db_commit(BlogsServer(server_id=f'{ctx.guild.id}'))
-		await db_commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
+		await db_manager.commit(BlogsServer(server_id=f'{ctx.guild.id}'))
+		await db_manager.commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
 
 	@warframe.command()
 	async def voidtrader(self, ctx):
@@ -233,8 +234,8 @@ class BlocklistCog(commands.Cog):
 			search_warframe_fissures_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{i[5]}').first()
 			logger.debug(search_warframe_fissures_detail.id)
 			logger.debug(embed_message.id)
-			await db_commit(WarframeFissuresChannel(channel_id=embed_message.channel.id))
-			await db_commit(WarframeFissuresMessage(detail_id=search_warframe_fissures_detail.id, message_id=embed_message.id, channel_id=embed_message.channel.id))
+			await db_manager.commit(WarframeFissuresChannel(channel_id=embed_message.channel.id))
+			await db_manager.commit(WarframeFissuresMessage(detail_id=search_warframe_fissures_detail.id, message_id=embed_message.id, channel_id=embed_message.channel.id))
 
 
 def setup(bot):

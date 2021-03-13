@@ -6,7 +6,8 @@ from discord.ext import commands
 from discord.utils import get
 from sqlalchemy import and_
 
-from main import embed_send, bot_prefix, db_commit, none_check_invoked_subcommand
+from base import db_manager
+from main import embed_send, bot_prefix, none_check_invoked_subcommand
 from settings import session
 from sql.models.blog import BlogsServer, BlogsCategory
 
@@ -113,10 +114,10 @@ class BlogCog(commands.Cog):
         search_server = session.query(BlogsServer).filter(BlogsServer.server_id == f'{ctx.guild.id}').first()
 
         if search_server is None:
-            await db_commit(BlogsServer(server_id=f'{ctx.guild.id}'))
+            await db_manager.commit(BlogsServer(server_id=f'{ctx.guild.id}'))
         search_category = session.query(BlogsCategory).filter(and_(BlogsCategory.server_id == f'{ctx.guild.id}', BlogsCategory.category_id == f'{ctx.channel.category.id}')).first()
         if search_category is None:
-            await db_commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
+            await db_manager.commit(BlogsCategory(server_id=f'{ctx.guild.id}', category_id=f'{ctx.channel.category.id}'))
             await embed_send(ctx, self.bot, 0, '成功', '登録に成功しました!')
         else:
             await embed_send(ctx, self.bot, 1, 'エラー', '既に登録されているカテゴリです')

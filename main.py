@@ -17,7 +17,7 @@ from halo import Halo
 from sqlalchemy.exc import IntegrityError
 from uvicorn import Config, Server
 
-from base import logger
+from base import logger, db_manager
 from modules.voice_generator import create_wave
 from routers import v1
 from settings import session
@@ -135,28 +135,6 @@ async def embed_send(ctx, bot, embed_type, title, subtitle, color=None):
 	return m
 
 
-async def db_commit(content, autoincrement=None, commit_type='insert', result_type='content'):
-	if commit_type == 'insert':
-		session.add(content)
-	try:
-		session.commit()
-		logger.debug('commitに成功しました')
-		if autoincrement is None:
-			if result_type == 'content':
-				result = content
-
-		elif autoincrement is True:
-			result = content.id
-
-	except IntegrityError as e:
-		session.rollback()
-		result = 'IntegrityError'
-		logger.debug('commitを行う際に重複が発生しました')
-	#    finally:
-	#        session.close()
-	return result
-
-
 def json_load(path):
 	json_open = open(f'{path}', 'r')
 	json_load = json.load(json_open)
@@ -195,8 +173,8 @@ async def api_request():
 							"name": f"{guild.name}"
 						}
 					}
-			await db_commit(ApiDetail(request_id=request.request_id, content=content))
-			await db_commit(session.query(ApiRequests).filter(ApiRequests.request_id==request.request_id).delete(), commit_type='delete')
+			await db_manager.commit(ApiDetail(request_id=request.request_id, content=content))
+			await db_manager.commit(session.query(ApiRequests).filter(ApiRequests.request_id==request.request_id).delete(), commit_type='delete')
 		if request.request_content is not None:
 			print(request.request_content['server_id'])
 
@@ -221,9 +199,9 @@ async def loop_bot():
 		for fissures in fissure_list:
 			search_warframe_fissure_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{warframe_fissure_id.api_id}').first()
 			if warframe_fissure_id.api_id != fissures[5]:
-				await db_commit(setattr(search_warframe_fissure_detail, 'status', 'True'), commit_type='update')
+				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'True'), commit_type='update')
 			else:
-				await db_commit(setattr(search_warframe_fissure_detail, 'status', 'False'), commit_type='update')
+				await db_manager.commit(setattr(search_warframe_fissure_detail, 'status', 'False'), commit_type='update')
 				break
 
 	# API側で期限切れになっている亀裂がないかを確認
@@ -231,14 +209,14 @@ async def loop_bot():
 		if i[6] is not True:
 			check_warframe_fissure_detail = session.query(WarframeFissuresDetail).filter(WarframeFissuresDetail.api_id == f'{i[5]}').first()
 			if not check_warframe_fissure_detail or check_warframe_fissure_detail.api_id != f'{i[5]}':
-				await db_commit(WarframeFissuresId(api_id=f'{i[5]}'))
+				await db_manager.commit(WarframeFissuresId(api_id=f'{i[5]}'))
 				star_name = str(re.findall("(?<=\().+?(?=\))", i[0])).replace('{', '').replace('}', '').replace('[', '').replace(']', '').replace('\'', '')
-				await db_commit(
+				await db_manager.commit(
 					WarframeFissuresDetail(api_id=f'{i[5]}', node=f'{i[0]}', enemy=f'{i[2]}', type=f'{i[1]}', tier=f'{i[3]}', tier_original=f'{fissure_tier_conversion(i[3])}', star_name=star_name,
 					                       eta=f'{i[4]}', status=f'{i[6]}'))
 			else:
-				await db_commit(setattr(check_warframe_fissure_detail, 'eta', f'{i[4]}'), commit_type='update')
-				await db_commit(setattr(check_warframe_fissure_detail, 'status', f'{i[6]}'), commit_type='update')
+				await db_manager.commit(setattr(check_warframe_fissure_detail, 'eta', f'{i[4]}'), commit_type='update')
+				await db_manager.commit(setattr(check_warframe_fissure_detail, 'status', f'{i[6]}'), commit_type='update')
 
 	# 新しい亀裂が登録されてるチャンネルに送信されてない場合は送信
 	for fissure_id in session.query(WarframeFissuresDetail).order_by(WarframeFissuresDetail.tier):
@@ -248,7 +226,7 @@ async def loop_bot():
 				channel = bot.get_channel(int(fissure_channel.channel_id))
 				embed = warframe_fissures_embed(fissure_id.node, fissure_id.type, fissure_id.enemy, fissure_tier_conversion(fissure_id.tier), mission_eta_conversion(fissure_id.eta))
 				send_embed = await channel.send(embed=embed)
-				await db_commit(WarframeFissuresMessage(detail_id=fissure_id.id, message_id=send_embed.id, channel_id=send_embed.channel.id))
+				await db_manager.commit(WarframeFissuresMessage(detail_id=fissure_id.id, message_id=send_embed.id, channel_id=send_embed.channel.id))
 				break
 	for message in session.query(WarframeFissuresMessage).order_by(WarframeFissuresMessage.id):
 		message_search_result, fissure = await fissure_check()
@@ -264,7 +242,7 @@ async def loop_bot():
 	# データに登録されている亀裂が期限切れになっていないかを確認
 	for test in session.query(WarframeFissuresDetail).all():
 		if bool(strtobool(test.status)) is True:
-			await db_commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete')
+			await db_manager.commit(session.delete(session.query(WarframeFissuresId).filter(WarframeFissuresId.api_id == f'{test.api_id}').first()), commit_type='delete')
 
 class Ssm(commands.Bot):
 

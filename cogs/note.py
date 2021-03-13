@@ -5,7 +5,8 @@ import discord
 from discord.ext import commands
 from sqlalchemy import text, and_
 
-from main import check_variable, embed_send, check_args, logger, db_commit
+from base import db_manager
+from main import check_variable, embed_send, check_args, logger
 from settings import session
 from sql.models.note import NotesCategory, NotesDetail
 
@@ -40,8 +41,8 @@ class NoteCog(commands.Cog):
             search_category_name = session.query(NotesCategory).filter(NotesCategory.category_name == f'{category_name}').all()
             if len(search_category_name) == 0:
                 logger.debug(f'カテゴリ「{category_name}」が存在しないため作成します')
-                await db_commit(NotesCategory(category_name=f'{category_name}'))
-            add_note_result = await db_commit(NotesDetail(user_id=f'{ctx.author.id}', content=f'{note}', category_name=f'{category_name}'), True)
+                await db_manager.commit(NotesCategory(category_name=f'{category_name}'))
+            add_note_result = await db_manager.commit(NotesDetail(user_id=f'{ctx.author.id}', content=f'{note}', category_name=f'{category_name}'), True)
             if add_note_result != 'IntegrityError':
                 embed = discord.Embed(title="ノートの登録に成功しました", description="このメッセージは10秒後に自動で削除されます", color=0xff7e70)
                 embed.add_field(name="id", value=f"{add_note_result}", inline=True)
@@ -58,7 +59,7 @@ class NoteCog(commands.Cog):
             await ctx.send('存在しないidです')
             return
         if notes.user_id == ctx.author.id:
-            await db_commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete(), commit_type='delete')
+            await db_manager.commit(session.query(NotesDetail).filter(and_(NotesDetail.user_id == f'{ctx.author.id}', NotesDetail.id == f'{note_id}')).delete(), commit_type='delete')
 
     @note.command(name='list')
     async def _list(self, ctx, note_author: typing.Optional[discord.User] = 'me', *, args: check_args = None):
