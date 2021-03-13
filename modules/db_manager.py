@@ -1,4 +1,5 @@
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import DetachedInstanceError
 
 
 class DbManager:
@@ -14,7 +15,7 @@ class DbManager:
 			if logger_level == 'info':
 				self.logger.info(message)
 
-	async def db_commit(self, content, autoincrement=None, commit_type='insert', result_type='content'):
+	async def commit(self, content, autoincrement=None, commit_type='insert', result_type='content'):
 		if commit_type == 'insert':
 			self.session.add(content)
 		try:
@@ -31,6 +32,9 @@ class DbManager:
 			self.session.rollback()
 			result = 'IntegrityError'
 			await self.check_logger('commitを行う際に重複が発生しました', f'debug')
+		except DetachedInstanceError as e:
+			self.session.rollback()
+			await self.check_logger('sessionに何らかの問題が発生しました。commitに成功しなかった可能性があります', 'error')
 		finally:
 			self.session.close()
 		return result
