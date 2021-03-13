@@ -21,7 +21,7 @@ db_default_database = config_ini['DATABASE']['Default_Database']
 
 engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_default_database}', echo=False)  # DEBUG時はTrueに
 
-Session = sessionmaker(bind=engine, autoflush=True)
+Session = sessionmaker(bind=engine, autoflush=True, expire_on_commit=False)
 
 session = Session()
 
