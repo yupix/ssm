@@ -1,14 +1,17 @@
 import asyncio
 import traceback
+from logging import getLogger
 
 import discord
 from discord.ext import commands
 from discord.utils import get
 
-from cogs.blocklist import blog_reaction
-from main import logger, Output_wav_name, INITIAL_EXTENSIONS, embed_send
+from main import Output_wav_name, INITIAL_EXTENSIONS, embed_send
 from modules.voice_generator import create_wave
+from settings import session
+from sql.models.basic import Reactions
 
+logger = getLogger('main').getChild('basic')
 
 class BasicCog(commands.Cog):
 
@@ -27,6 +30,7 @@ class BasicCog(commands.Cog):
 				self.bot.reload_extension(cog)
 			except Exception:
 				traceback.print_exc()
+		logger.info('リロードに成功しました')
 		await embed_send(ctx, self.bot, 0, '成功', 'リロードに成功しました！')
 		return ctx
 
@@ -109,54 +113,17 @@ class BasicCog(commands.Cog):
 		emoji = reaction.emoji
 		reaction_message_id = reaction.message.id  # リアクションが付いたメッセージID
 		reaction_channel_id = reaction.message.channel.id  # リアクションが付いたメッセージのあるチャンネルID
+		reaction_guild_id = reaction.message.guild.id  # リアクションが付いたメッセージのあるギルド
+		logger.debug(f'リアクションがついたメッセージID: {reaction_message_id}')
+		logger.debug(f'リアクションがついたメッセージのあるチャンネル: {reaction_channel_id}')
+		logger.debug(f'リアクションが付いたメッセージのあるギルド: {reaction_guild_id}')
 
-		search_reaction = await db_reformat(await db_search('message_id', 'reactions', f'message_id = {reaction_message_id}'), 2)
-		search_reaction_id = await db_reformat(await db_search('id', 'reactions', f'message_id = {reaction_message_id}'), 2)
-
-		if search_reaction:
-			check_channel = await db_reformat(
-				await db_search('channel_id', 'blocklist_reaction', f'channel_id = {reaction_channel_id}'), 2)
-
-			check_user = await db_reformat(
-				await db_search('user_id', 'blocklist_reaction', f'channel_id = {reaction_channel_id} AND reaction_id ={search_reaction_id} AND user_id IS NOT NULL'), 2)
-
-			user = await self.bot.fetch_user(check_user)
-
-			check_command = await db_reformat(
-				await db_search('command', 'blocklist_reaction', f'channel_id = {reaction_channel_id} AND reaction_id ={search_reaction_id} AND command IS NOT NULL'), 1)
-
-			"""現状使わないのでコメントアウト
-			check_original_message_id = await db_search('original_message_id', 'discord_reaction',
-											f'channel_id = {reaction_channel_id} AND message_id = {reaction_message_id} AND original_message_id IS NOT NULL')
-			reformat_original_message_id = await db_reformat(check_original_message_id, 1)
-			"""
-
-			channel = reaction.message.guild.get_channel(check_channel)
-
-			# ogl_msg = await channel.fetch_message(reformat_original_message_id)
-			msg = await channel.fetch_message(reaction_message_id)
-
-			check_mode = await db_reformat(
-				await db_search('mode', 'blocklist_reaction', f'channel_id = {reaction_channel_id} AND reaction_id ={search_reaction_id} AND mode IS NOT NULL'), 1)
-
-			print(f'見つかったチャンネルID: {check_channel}\n'
-			      f'見つかったユーザーID: {check_user}\n'
-			      f'見つかったコマンド: {check_command}\n'
-			      f'モード: {check_mode}\n'
-			      f'付けられた絵文字: {emoji}')
-
-			if check_command == 'blocklist':
-				await blog_reaction(reaction, check_mode, user, msg, search_reaction)
-
-			"""未修正のためコメントアウト
-			elif check_command == 'modpack':
-				await modpack_reaction(reaction, check_mode, user, msg, search_reaction, ogl_msg)
-			"""
-
-
-# elif reformat_command == 'basic':
-# await basic_reaction(reaction, check_mode, user, msg, search_reaction, ogl_msg)
-
+		reactions = session.query(Reactions).filter(Reactions.message_id == reaction_message_id).first()
+		print(reactions)
+		if reactions:
+			exec(f'from {reactions.module_path} import {reactions.class_name}')
+			cls = eval(reactions.action)(reactions, self.bot)
+			await getattr(cls, 'reaction')()
 
 def setup(bot):
 	bot.add_cog(BasicCog(bot))
