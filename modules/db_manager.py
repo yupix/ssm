@@ -10,9 +10,9 @@ class DbManager:
 		self.show_commit_log = show_commit_log
 		self.force_show_commit_log = force_show_commit_log
 
-	async def check_logger(self, message: str = None, logger_level: str = None):
+	async def check_logger(self, message: str = None, logger_level: str = None, show_commit_log: bool=False):
 		"""ログの出力のレベル分けを行い適切に出力します"""
-		if self.logger is not None:
+		if show_commit_log is True or self.force_show_commit_log is True and self.logger is not None:
 			if logger_level == 'debug':
 				self.logger.debug(message)
 			elif logger_level == 'error':
@@ -32,8 +32,7 @@ class DbManager:
 			self.session.add(content)
 		try:
 			self.session.commit()
-			if show_commit_log is True:
-				await self.check_logger('commitに成功しました', f'debug')
+			await self.check_logger('commitに成功しました', f'debug', show_commit_log)
 			if autoincrement is None:
 				if result_type == 'content':
 					result = content
@@ -41,17 +40,10 @@ class DbManager:
 			elif autoincrement is True:
 				result = content.id
 
-		except IntegrityError as e:
+		except IntegrityError:
 			self.session.rollback()
 			result = 'IntegrityError'
-			if show_commit_log is True:
-				await self.check_logger('commitを行う際に重複が発生しました', f'warn')
-		except DetachedInstanceError as e:
-			self.session.rollback()
-			if show_commit_log is True:
-				await self.check_logger('sessionに何らかの問題が発生しました。commitに成功しなかった可能性があります', 'error')
-		finally:
-			self.session.close()
+			await self.check_logger('commitを行う際に重複が発生しました', f'warn', show_commit_log)
 		return result
 
 
