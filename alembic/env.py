@@ -25,8 +25,8 @@ target_models = [
 	'sql.models.basic',
 	'sql.models.blocklist',
 	'sql.models.blog',
-	'sql.models.server',
-	'sql.models.WarframeFissure'
+	'sql.models.note',
+	'sql.models.WarframeFissure',
 ]
 
 

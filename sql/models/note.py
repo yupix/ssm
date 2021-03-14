@@ -1,7 +1,6 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, INT, VARCHAR, BIGINT, Table, UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, VARCHAR, BIGINT, UniqueConstraint
 
-from settings import Base, engine
+from settings import Base
 
 
 class NotesUser(Base):
@@ -34,4 +33,3 @@ class NotesDetail(Base):
 
 	def __repl__(self):
 		return f'NotesDetail(id={self.id}, user_id={self.user_id}, content={self.content}, category_name={self.category_name})'
-
