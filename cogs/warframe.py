@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 import numpy as np
 import requests
@@ -20,10 +22,12 @@ def warframe_fissures_embed(mission_title, mission_type, appear_enemy, drop_reli
 
 def mission_type_conversion(fissure_mission_type):
 	conversion_list = {'Spy': '潜入', 'Capture': '確保', 'Survival': '耐久', 'Sabotage': '妨害', 'Defense': '防衛', 'Extermination': '殲滅', 'Rescue': '救出',
-	                   'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック'}
+	                   'Interception': '傍受', 'Mobile Defense': '機動防衛', 'Excavation': '発掘', 'Disruption': '分裂', 'Hijack': 'ハイジャック', 'Assault': '突撃'}
 	for conversion in conversion_list.keys():
 		if fissure_mission_type == conversion:
 			return fissure_mission_type.replace(conversion, conversion_list[f'{conversion}'])
+	else:
+		logger.debug(f'翻訳に存在しないキー{fissure_mission_type}')
 
 
 def mission_eta_conversion(fissure_eta):
