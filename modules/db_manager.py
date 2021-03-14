@@ -1,4 +1,4 @@
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from sqlalchemy.orm.exc import DetachedInstanceError
 
 
@@ -44,6 +44,9 @@ class DbManager:
 			self.session.rollback()
 			result = 'IntegrityError'
 			await self.check_logger('commitを行う際に重複が発生しました', f'warn', show_commit_log)
+		except InvalidRequestError:
+			self.session.rollback()
+			result = 'InvalidRequestError'
 		return result
 
 
