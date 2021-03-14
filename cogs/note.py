@@ -1,14 +1,17 @@
 import re
 import typing
+from logging import getLogger
 
 import discord
 from discord.ext import commands
 from sqlalchemy import text, and_
 
 from base import db_manager
-from main import check_variable, embed_send, check_args, logger
+from main import check_variable, embed_send, check_args
 from settings import session
-from sql.models.note import NotesCategory, NotesDetail
+from sql.models.note import NotesCategory, NotesDetail, NotesUser
+
+logger = getLogger('main').getChild('note')
 
 
 class NoteCog(commands.Cog):
@@ -30,9 +33,7 @@ class NoteCog(commands.Cog):
         logger.debug(note)
         variable = await check_variable(note, 'addを使用するにはnoteをつける必要性があります', ctx)
         if variable == 0:
-            note_user_sql = text(f'insert into notes_user (user_id) values ({ctx.author.id}) ON CONFLICT DO NOTHING')
-            note_user_res = session.execute(note_user_sql)
-            print(note_user_res)
+            await db_manager.commit(NotesUser(user_id=ctx.author.id))
 
             if use_category is not None and use_category == '-c' and category_name is not None:
                 logger.debug(f'カテゴリ「{category_name}」が指定されました')
