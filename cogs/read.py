@@ -14,8 +14,6 @@ class ReadCog(commands.Cog):
 
 	@commands.command(pass_context=True, name='status')
 	async def status(self, ctx):
-		#print(member)
-		#member = discord.Member(ctx.author.id)
 		member = await ctx.guild.fetch_member(ctx.author.id)
 		print(member.status)
 
