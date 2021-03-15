@@ -24,25 +24,28 @@ class BlocklistAction:
 
 	async def check_blocklist(self):
 		if self.search_user is not None:
-			logger.debug(f'{self.member.name}はギルド{self.member.guild.name}のブロックリストに登録されていません')
-		else:
 			logger.debug(f'{self.member.name}はギルド{self.member.guild.name}のブロックリストに登録されています')
+		else:
+			logger.debug(f'{self.member.name}はギルド{self.member.guild.name}のブロックリストに登録されていません')
 		registered = self.search_user
 		await self.check_mode(registered)
 
 	async def check_role(self, mode):
 		mode_list = ['AutoKick', 'AutoBan', 'AddRole', 'RemoveRole']
 		if mode in mode_list:
-			if self.search_user is not None:
-				role = self.search_user.role
+			if self.search_guild is not None:
+				try:
+					role = self.search_guild.role
+				except AttributeError:
+					role = None
 			else:
-				role = self.search_guild.role
+				role = None
 			return role
 		else:
 			return None
 
 	async def check_mode(self, registered):
-		if self.search_user.mode is None:  # ユーザーのモードを優先
+		if self.search_user is None:  # ユーザーのモードを優先
 			mode = self.search_guild.mode
 		else:
 			mode = self.search_user.mode
@@ -108,8 +111,8 @@ class BasicCog(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
-		search_user = session.query(BlocklistUser).filter(and_(BlocklistUser.server_id == f'{member.guild.id}', BlocklistUser.user_id == f'{member.guild.id}'))
-		search_guild = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == member.guild.id)
+		search_user = session.query(BlocklistUser).filter(and_(BlocklistUser.server_id == f'{member.guild.id}', BlocklistUser.user_id == f'{member.id}')).first()
+		search_guild = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == member.guild.id).first()
 		blocklist_action = BlocklistAction(search_guild=search_guild, search_user=search_user, member=member)
 		await blocklist_action.check_blocklist()
 
