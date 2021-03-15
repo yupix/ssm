@@ -14,7 +14,8 @@ class BlocklistSettings(Base):
     __tablename__ = 'blocklist_settings'
     server_id = Column(BIGINT, ForeignKey('blocklist_server.server_id', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     mode = Column(VARCHAR(255))
-    role = Column(VARCHAR(255))
+    add_role = Column(VARCHAR(255))
+    remove_role = Column(VARCHAR(255))
 
 
 class BlocklistUser(Base):

@@ -5,13 +5,80 @@ from logging import getLogger
 import discord
 from discord.ext import commands
 from discord.utils import get
+from sqlalchemy import and_
 
 from main import Output_wav_name, INITIAL_EXTENSIONS, embed_send
 from modules.voice_generator import create_wave
 from settings import session
 from sql.models.basic import Reactions
+from sql.models.blocklist import BlocklistUser, BlocklistSettings
 
 logger = getLogger('main').getChild('basic')
+
+
+class BlocklistAction:
+	def __init__(self, search_guild=None, search_user=None, member: discord.Member = None):
+		self.search_guild = search_guild
+		self.search_user = search_user
+		self.member = member
+
+	async def check_blocklist(self):
+		if self.search_user is not None:
+			logger.debug(f'{self.member.name}はギルド{self.member.guild.name}のブロックリストに登録されていません')
+		else:
+			logger.debug(f'{self.member.name}はギルド{self.member.guild.name}のブロックリストに登録されています')
+		registered = self.search_user
+		await self.check_mode(registered)
+
+	async def check_role(self, mode):
+		mode_list = ['AutoKick', 'AutoBan', 'AddRole', 'RemoveRole']
+		if mode in mode_list:
+			if self.search_user is not None:
+				role = self.search_user.role
+			else:
+				role = self.search_guild.role
+			return role
+		else:
+			return None
+
+	async def check_mode(self, registered):
+		if self.search_user.mode is None:  # ユーザーのモードを優先
+			mode = self.search_guild.mode
+		else:
+			mode = self.search_user.mode
+		role = await self.check_role(mode)
+		if mode == 'AutoKick':
+			await self.auto_kick(registered)
+		elif mode == 'AutoBan':
+			await self.auto_ban(registered)
+		elif mode == 'AddRole':
+			await self.add_role(registered, role)
+		elif mode == 'RemoveRole':
+			pass
+
+	async def auto_kick(self, registered):
+		"""ユーザーがブロックリストに存在する場合ユーザーをKickします"""
+		if registered is not None:
+			await self.member.kick()
+		return 'success'
+
+	async def auto_ban(self, registered):
+		"""ユーザーがブロックリストに存在する場合ユーザーをBANします"""
+		if registered is not None:
+			await self.member.ban()
+		return 'success'
+
+	async def add_role(self, registered, role):
+		"""ユーザーがブロックリストに存在する場合ロールを付与します"""
+		if registered is not None:  # ユーザーが登録されている場合
+			await self.member.add_role(role)
+		return 'success'
+
+	async def remove_role(self, registered, role):
+		"""ユーザーがブロックリストに存在する場合は権限を付与しません"""
+		if registered is None:
+			await self.member.add_role(role)
+		return 'success'
 
 class BasicCog(commands.Cog):
 
@@ -41,41 +108,10 @@ class BasicCog(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member: discord.Member):
-		async def blockuser_treatment(search_blocklist_mode, member):
-			print(search_blocklist_mode)
-			print(member)
-			if f'{search_blocklist_mode}' == 'autokick':  # ブロックユーザーには権限を付与しないモード
-				await member.kick()
-			elif f'{search_blocklist_mode}' == 'autoban':  # ブロックユーザーには権限を付与しないモード
-				await member.ban()
-
-		search_server_id = await db_reformat(
-			await db_search('server_id', 'blocklist_server', f'server_id = {member.guild.id}'), 2)
-		if search_server_id:
-			search_blocklist_mode = await db_reformat(
-				await db_search('mode', 'blocklist_settings', f'server_id = {member.guild.id}'), 1)
-			check_block_list = await db_search('user_id', 'blocklist_user', f'server_id = {member.guild.id} AND user_id = {member.id}')
-			if check_block_list:
-				print('ブロックユーザーです')
-				search_blocklist_user_mode = await db_reformat(await db_search('mode', 'blocklist_user',
-				                                                               f'server_id = {member.guild.id} AND user_id = {member.id}'), 1)
-
-				if f'{search_blocklist_user_mode}' != 'None':
-					await blockuser_treatment(search_blocklist_user_mode, member)
-					print('ユーザー処理されました')
-				else:
-					await blockuser_treatment(search_blocklist_mode, member)
-					print('デフォルト処理されました')
-
-			else:
-				print('ブロックリストじゃないよ')
-				if f'{search_blocklist_mode}' == 'nonerole':  # ブロックユーザーには権限を付与しないモード
-					role_id = await db_search('role_id', 'blocklist_role',
-					                          f'server_id = {member.guild.id}')
-					reformat_role_id = await db_reformat(role_id, 2)
-					role = get(member.guild.roles, id=reformat_role_id)
-					print(f'{role.name}')
-					await member.add_roles(role)
+		search_user = session.query(BlocklistUser).filter(and_(BlocklistUser.server_id == f'{member.guild.id}', BlocklistUser.user_id == f'{member.guild.id}'))
+		search_guild = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == member.guild.id)
+		blocklist_action = BlocklistAction(search_guild=search_guild, search_user=search_user, member=member)
+		await blocklist_action.check_blocklist()
 
 	@commands.Cog.listener()
 	async def on_voice_state_update(self, member, before, after):
@@ -122,8 +158,9 @@ class BasicCog(commands.Cog):
 		print(reactions)
 		if reactions:
 			exec(f'from {reactions.module_path} import {reactions.class_name}')
-			cls = eval(reactions.action)(reactions, self.bot)
+			cls = eval(reactions.action)(reactions, self.bot, emoji)
 			await getattr(cls, 'reaction')()
+
 
 def setup(bot):
 	bot.add_cog(BasicCog(bot))
