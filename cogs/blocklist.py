@@ -103,7 +103,7 @@ class BlocklistCog(commands.Cog):
 			await ctx.send('this command is sub option required')
 
 	@blocklist.command()
-	async def register(self, ctx, mode='autokick', role: discord.Role=None):
+	async def register(self, ctx, mode='AutoKick', role: discord.Role=None):
 		if ctx.author.guild_permissions.administrator:
 			search_blocklist_server = session.query(BlocklistServer).filter(BlocklistServer.server_id == f'{ctx.guild.id}').first()
 			if not search_blocklist_server:  # サーバーIDが既に登録されてるか確認
@@ -112,11 +112,11 @@ class BlocklistCog(commands.Cog):
 			search_blocklist_server_settings = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == f'{ctx.guild.id}').first()
 
 			if not search_blocklist_server_settings:  # 既に設定が存在するか確認
-				processing_mode_list = ['autokick', 'autoban', 'addrole', 'removerole']
+				processing_mode_list = ['AutoKick', 'AutoBan', 'AddRole', 'RemoveRole']
 				for check_mode in processing_mode_list:
 					if f'{mode}' == f'{check_mode}':  # 存在するmodeか確認
 						logger.debug('モードの確認に成功しました')
-						if f'{mode}' == 'nonerole' or f'{mode}' == 'addrole':
+						if f'{mode}' == 'NoneRole' or f'{mode}' == 'AddRole':
 							role_id = role.id
 						else:
 							role_id = None
@@ -133,7 +133,7 @@ class BlocklistCog(commands.Cog):
 		if ctx.author.guild_permissions.administrator:
 			search_blocklist_server_settings = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == f'{ctx.guild.id}').first()
 			if mode is not None:
-				processing_mode_list = ['autokick', 'autoban', 'addrole', 'removerole']
+				processing_mode_list = ['AutoKick', 'AutoBan', 'AddRole', 'RemoveRole']
 				for check_mode in processing_mode_list:
 					if f'{mode}' == f'{check_mode}':  # 存在するmodeか確認
 						if search_blocklist_server_settings:  # サーバーIDが既に登録されてるか確認
