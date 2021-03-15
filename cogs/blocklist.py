@@ -155,18 +155,16 @@ class BlocklistCog(commands.Cog):
 			await embed_send(ctx, self.bot, 1, '失敗', 'このコマンドはBotの所有者のみが実行できます')
 
 	@blocklist.command()
+	@has_permissions(manage_guild=True)
 	async def list(self, ctx):
-		if ctx.author.guild_permissions.administrator:
-			search_block_id = await db_search('block_id', 'blocklist_user', f'server_id = {ctx.guild.id}')
-			search_user_id = await db_search('user_id', 'blocklist_user', f'server_id = {ctx.guild.id}')
-
-			for i in range(len(search_block_id)):
-				print(search_block_id)
-				block_id = await db_reformat(f'{search_block_id[-i]}', 1)
-				user_id = await db_reformat(f'{search_user_id[-i]}', 1)
-				print(f'{block_id}', f'{user_id}')
-		else:
-			await ctx.send('このコマンドには管理者必須やで')
+		search_blocklist_users = session.query(BlocklistUser).filter(BlocklistUser.server_id == f'{ctx.guild.id}').all()
+		guild = self.bot.get_guild(ctx.guild.id)
+		embed = discord.Embed(title=f'{guild.name}のブロックリスト',color=0x859fff)
+		for _user in search_blocklist_users:
+			if len(embed) < 1800:
+				user = self.bot.get_user(_user.user_id)
+				embed.add_field(name=f"ユーザー名: {user.name}", value=f"理由: 無し", inline=True)
+		await ctx.send(embed=embed)
 
 
 def setup(bot):
