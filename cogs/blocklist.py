@@ -104,7 +104,7 @@ class BlocklistCog(commands.Cog):
 
 	@blocklist.command()
 	@has_permissions(manage_guild=True)
-	async def add(self, ctx, user: discord.User, mode: check_mode):
+	async def add(self, ctx, user: discord.User=None, mode: check_mode=None):
 		search_blocklist_server_settings = session.query(BlocklistSettings).filter(BlocklistSettings.server_id == f'{ctx.guild.id}').first()
 		if mode is not None:
 			if search_blocklist_server_settings:  # サーバーIDが既に登録されてるか確認
@@ -128,7 +128,7 @@ class BlocklistCog(commands.Cog):
 			await embed_send(ctx, self.bot, 1, 'エラー', f'{mode}は存在しないモードです')
 
 	@add.error
-	async def reload_error(self, ctx, error):
+	async def add_error(self, ctx, error):
 		if isinstance(error, commands.UserNotFound):
 			await embed_send(ctx, self.bot, 1, '失敗', '存在しないユーザーです')
 
