@@ -21,3 +21,4 @@ sanic
 fastapi-versioning
 python-dotenv
 pylint
+flake8
