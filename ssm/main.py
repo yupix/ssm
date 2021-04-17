@@ -181,7 +181,7 @@ async def api_request():
 
 
 @tasks.loop(seconds=60)
-async def loop_bot():
+async def loop_bot_task():
 	from ssm.cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
 
 	async def fissure_check():
@@ -259,8 +259,9 @@ class Ssm(commands.Bot):
 
 	async def on_ready(self):
 		spinner.stop()
-		loop_bot.start()
-		if bool(use_api) is True: api_request.start()
+		loop_bot_task.start()
+		if bool(use_api) is True:
+			api_request.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
