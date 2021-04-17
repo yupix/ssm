@@ -269,7 +269,7 @@ class Ssm(commands.Bot):
 		logger.info(f'{ctx.guild.name}=> {ctx.channel.name}=> {ctx.author.name}: {ctx.content}')
 		if ctx.embeds:
 			for embed in ctx.embeds:
-				logger.debug(embed.to_dict())
+				logger.info(embed.to_dict())
 		check_voice_channel = discord.utils.get(self.voice_clients, guild=ctx.guild)  # This allows for more functionality with voice channels
 
 		if bool(strtobool(read_aloud)) is True and check_voice_channel is not None:
