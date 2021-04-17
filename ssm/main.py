@@ -179,7 +179,7 @@ async def api_request():
 
 @tasks.loop(seconds=60)
 async def loop_bot():
-	from cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
+	from ssm.cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
 
 	async def fissure_check():
 		for fissure in session.query(WarframeFissuresDetail).order_by(WarframeFissuresDetail.tier):
