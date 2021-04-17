@@ -56,6 +56,7 @@ INITIAL_EXTENSIONS = [
 	'ssm.cogs.blog',
 	'ssm.cogs.read',
 	'ssm.cogs.basic',
+	'ssm.cogs.eew',
 ]
 
 
@@ -119,17 +120,19 @@ async def check_url(url):
 		return 1
 
 
-async def embed_send(ctx, bot, embed_type, title, subtitle, color=None):
+async def embed_send(ctx, use_bot, embed_type: int, title: str, subtitle: str, color=None) -> discord.Message:
 	if color is None:
 		if embed_type == 0:  # 成功時
 			embed_color = 0x8bc34a
 		elif embed_type == 1:  # エラー発生時
 			embed_color = 0xd32f2f
+		else:
+			embed_color = 0xb39ddb
 	else:
 		embed_color = color
 	logger.debug(f'{embed_type}, {title}, {subtitle}')
 	embed = discord.Embed(title=f'{title}', description=f'{subtitle}', color=embed_color)
-	m = await bot.get_channel(ctx.message.channel.id).send(embed=embed)
+	m = await use_bot.get_channel(ctx.message.channel.id).send(embed=embed)
 	return m
 
 
