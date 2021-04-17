@@ -20,3 +20,4 @@ Quart
 sanic
 fastapi-versioning
 python-dotenv
+git+https://github.com/yupix/dbmanager
