@@ -5,20 +5,23 @@ import re
 import traceback
 import typing
 import urllib
-from distutils.util import strtobool
-
 import configparser
 import discord
+import requests as requests
+
+from distutils.util import strtobool
 from discord.ext import commands, tasks
 from fastapi import FastAPI
 from fastapi_versioning import VersionedFastAPI
 from googletrans import Translator
 from uvicorn import Config, Server
+from discord_slash import SlashCommand, SlashContext
 
 from ssm import session
 from ssm.base import db_manager, logger, spinner
 from ssm.modules.voice_generator import create_wave
 from ssm.routers import v1
+from ssm.sql.models.eew import Eew, EewChannel
 from ssm.sql.models.WarframeFissure import WarframeFissuresId, WarframeFissuresDetail, WarframeFissuresMessage, WarframeFissuresChannel
 from ssm.sql.models.api import ApiRequests, ApiDetail
 
@@ -180,6 +183,24 @@ async def api_request():
 			print(request.request_content['server_id'])
 
 
+@tasks.loop(seconds=1)
+async def bot_eew_loop():
+	from ssm.cogs.eew import EewSendChannel
+	url = "https://dev.narikakun.net/webapi/earthquake/post_data.json"
+	result = requests.get(url).json()
+	logger.debug(result)
+	event_id = result['Head']['EventID']
+	search_event_id = session.query(Eew).filter(Eew.event_id == event_id).first()
+	if search_event_id is None:
+		await db_manager.commit(Eew(event_id=event_id))
+		eew_manager = EewSendChannel(bot)
+		image_url = await eew_manager.get_nhk_image(result['Body']['Earthquake']['OriginTime'])
+		search_eew_channel_list = session.query(EewChannel)
+		for channel in search_eew_channel_list:
+			logger.debug(f'{channel.channel_id}にEew情報を送信します')
+			asyncio.ensure_future(eew_manager.main_title_send(channel, result, image_url))
+
+
 @tasks.loop(seconds=60)
 async def loop_bot_task():
 	from ssm.cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
@@ -262,6 +283,7 @@ class Ssm(commands.Bot):
 		loop_bot_task.start()
 		if bool(use_api) is True:
 			api_request.start()
+		await bot_eew_loop.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
@@ -302,9 +324,11 @@ async def api_run(loop1):
 
 def run(loop_bot, loop_api):
 	global bot
+	global slash_client
 	asyncio.set_event_loop(loop_bot)
 	intents = discord.Intents.all()
 	bot = Ssm(command_prefix=f'{bot_prefix}', intents=intents)
+	slash_client = SlashCommand(bot, sync_commands=True)
 	if bool(use_api) is True:
 		future = asyncio.gather(bot_run(loop_bot), api_run(loop_api))
 	else:
