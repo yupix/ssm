@@ -37,6 +37,7 @@ reset_status = config_ini['RESET']['Status']
 
 custom_blogrole = config_ini['CUSTOM']['Blogrole']
 use_api = config_ini['API']['use']
+use_eew = config_ini['EEW']['use']
 
 Dic_Path = config_ini['JTALK']['Dic_Path']
 Voice_Path = config_ini['JTALK']['Voice_Path']
@@ -281,9 +282,10 @@ class Ssm(commands.Bot):
 	async def on_ready(self):
 		spinner.stop()
 		loop_bot_task.start()
-		if bool(use_api) is True:
+		if bool(strtobool(use_api)) is True:
 			api_request.start()
-		await bot_eew_loop.start()
+		if bool(strtobool(use_eew)) is True:
+			await bot_eew_loop.start()
 		print('--------------------------------')
 		print(self.user.name)
 		print(self.user.id)
@@ -329,7 +331,7 @@ def run(loop_bot, loop_api):
 	intents = discord.Intents.all()
 	bot = Ssm(command_prefix=f'{bot_prefix}', intents=intents)
 	slash_client = SlashCommand(bot, sync_commands=True)
-	if bool(use_api) is True:
+	if bool(strtobool(use_api)) is True:
 		future = asyncio.gather(bot_run(loop_bot), api_run(loop_api))
 	else:
 		future = asyncio.gather(bot_run(loop_bot))
