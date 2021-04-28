@@ -10,7 +10,7 @@ config_ini.read('config.ini', encoding='utf-8')
 
 
 def create_wave(inputText):
-    from main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Speed, Output_wav_name
+    from ssm.main import Jtalk_Bin_Path, Dic_Path, Voice_Path, Speed, Output_wav_name
     # TODO: 2020/11/22 辞書を追加
 
     with open(input_file, 'w', encoding='UTF-8') as file:
