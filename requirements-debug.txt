@@ -22,3 +22,5 @@ fastapi-versioning
 python-dotenv
 pylint
 flake8
+discord-py-slash-command
+beautifulsoup4

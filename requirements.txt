@@ -20,3 +20,7 @@ Quart
 sanic
 fastapi-versioning
 python-dotenv
+git+https://github.com/yupix/dbmanager
+alembic
+discord-py-slash-command
+beautifulsoup4
