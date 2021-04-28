@@ -1,6 +1,5 @@
 import discord
 import requests as requests
-import xmltodict as xmltodict
 from bs4 import BeautifulSoup as bs4
 
 from discord.ext import commands
