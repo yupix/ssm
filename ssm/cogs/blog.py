@@ -120,7 +120,8 @@ class BlogCog(commands.Cog):
 			return
 		elif not search_user:
 			return
-		update_xp_parcent = math.ceil(int(search_user.xp / (search_user.xp + xp_increase) * 100))
+		require_levelup_xp = int(1500 * (int(search_user.level) + 1) ^ 2)
+		update_xp_parcent = math.ceil(int((search_user.xp + xp_increase) / require_levelup_xp * 100))
 
 		embed_content = [{'title': '投稿数', 'value': f'{search_user.post_count}', 'option': {'inline': 'False'}}, {'title': '称号', 'value': f'なし', 'option': {'inline': 'False'}},
 		                 {'title': 'レベル', 'value': f'{search_user.level}'},
@@ -133,7 +134,7 @@ class BlogCog(commands.Cog):
 	async def on_message(self, ctx):
 		if ctx.author.bot:
 			return
-		if ctx.content != f'{bot_prefix}blog status':  # blog statusコマンドが投稿にカウントされないように
+		if ctx.content != f'{bot_prefix}blog user profile':  # blog statusコマンドが投稿にカウントされないように
 			search_channel = session.query(BlogsChannel).filter(BlogsChannel.channel_id == ctx.channel.id).first()
 			if search_channel:
 				search_user = session.query(BlogsUser).filter(and_(BlogsUser.channel_id == search_channel.channel_id, BlogsUser.user_id == ctx.author.id)).first()
