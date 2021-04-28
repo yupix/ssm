@@ -1,5 +1,6 @@
-from sqlalchemy import Column, ForeignKey, Integer, BIGINT, UniqueConstraint, JSON
+from sqlalchemy import Column, ForeignKey, Integer, BIGINT, UniqueConstraint, JSON, TIMESTAMP
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.functions import current_timestamp
 
 from ssm import Base
 
@@ -29,3 +30,17 @@ class BlogsChannel(Base):
 	channel_id = Column(BIGINT, unique=True)
 	owner_id = Column(BIGINT)
 	sub_user_list = Column(JSON)
+	xp = Column(BIGINT)
+	level = Column(BIGINT)
+	blogs_user = relationship("BlogsUser", backref='blogs_channel', lazy='dynamic')
+
+
+class BlogsUser(Base):
+	__tablename__ = 'blogs_user'
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	channel_id = Column(BIGINT, ForeignKey('blogs_channel.channel_id', onupdate='CASCADE', ondelete='CASCADE'))
+	user_id = Column(BIGINT)
+	xp = Column(BIGINT, default=0)
+	level = Column(BIGINT, default=1)
+	post_count = Column(BIGINT, default=0)
+	joined_at = Column(TIMESTAMP, server_default=current_timestamp())
