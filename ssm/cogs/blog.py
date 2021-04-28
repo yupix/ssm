@@ -114,14 +114,19 @@ class BlogCog(commands.Cog):
 	@user.command(name='profile')
 	async def profile(self, ctx):
 		search_channel, search_user = await get_blog_info(ctx)
-		if not search_user:
+		if not search_channel:
+			embed = await EmbedManager().generate(embed_title='プロフィールの表示に失敗', embed_description=f'`{ctx.channel.name}`はブログとして登録されていません。\n`{bot_prefix}blog setup`を実行したうえで再度実行してください`', embed_content=[], mode='failed')
+			await EmbedManager().send(ctx, embed, True, 3)
+			return
+		elif not search_user:
 			return
 		update_xp_parcent = math.ceil(int(search_user.xp / (search_user.xp + xp_increase) * 100))
 
 		embed_content = [{'title': '投稿数', 'value': f'{search_user.post_count}', 'option': {'inline': 'False'}}, {'title': '称号', 'value': f'なし', 'option': {'inline': 'False'}},
 		                 {'title': 'レベル', 'value': f'{search_user.level}'},
 		                 {'title': '経験値', 'value': f'{search_user.xp}'}, {'title': '次のレベルまで', 'value': f'{update_xp_parcent}/100%'}]
-		embed = await EmbedManager().generate(embed_title=f'{ctx.author.name}のプロフィール', embed_description=f'{ctx.channel.name}での活動状況です', embed_content=embed_content, embed_thumbnail=ctx.author.avatar_url)
+		embed = await EmbedManager().generate(embed_title=f'{ctx.author.name}のプロフィール', embed_description=f'{ctx.channel.name}での活動状況です', embed_content=embed_content,
+		                                      embed_thumbnail=ctx.author.avatar_url)
 		await ctx.send(embed=embed)
 
 	@commands.Cog.listener()
