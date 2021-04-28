@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - None
 
+## [1.2.1] - 2021 04-28
+
+### Added
+
+- add eew command
+- add blog command
+
+### Fixed
+
+- fix blog system
+
+### Changed
+
+- File structure
+
 ## [1.2.0] - 2021 03-11
 
 ### Added
