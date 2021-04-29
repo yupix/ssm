@@ -188,7 +188,11 @@ async def api_request():
 async def bot_eew_loop():
     from ssm.cogs.eew import EewSendChannel
     url = "https://dev.narikakun.net/webapi/earthquake/post_data.json"
-    result = requests.get(url).json()
+    try:
+        result = requests.get(url).json()
+    except json.decoder.JSONDecodeError:
+        logger.error('eewの情報取得にてエラーが発生しました: コンテンツタイプがjsonではありません')
+        return
     logger.debug(result)
     event_id = result['Head']['EventID']
     search_event_id = session.query(Eew).filter(Eew.event_id == event_id).first()
