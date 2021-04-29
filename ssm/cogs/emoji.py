@@ -41,6 +41,8 @@ class EmojiCog(commands.Cog):
         # await ctx.send(emoji_list)
         # emoji_list = ''
         await ctx.send(embed=embed)
+
+
 # await ctx.send(emoji_list)
 # await ctx.send(emoji_list_id)
 # await ctx.send(ctx.message.guild.emojis)

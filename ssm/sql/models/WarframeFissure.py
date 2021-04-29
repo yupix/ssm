@@ -24,12 +24,13 @@ class WarframeFissuresDetail(Base):
     star_name = Column(VARCHAR(255))
     eta = Column(VARCHAR(255))
     status = Column(VARCHAR(255))
-    warframe_fissures_message = relationship("WarframeFissuresMessage", backref='warframe_fissures_detail', lazy='dynamic',  cascade="all, delete-orphan")
+    warframe_fissures_message = relationship("WarframeFissuresMessage", backref='warframe_fissures_detail', lazy='dynamic', cascade="all, delete-orphan")
+
 
 class WarframeFissuresChannel(Base):
     __tablename__ = 'warframe_fissures_channel'
     channel_id = Column(BIGINT, primary_key=True)
-    warframe_fissures_message = relationship("WarframeFissuresMessage", backref='warframe_fissures_id', lazy='dynamic',  cascade="all, delete-orphan")
+    warframe_fissures_message = relationship("WarframeFissuresMessage", backref='warframe_fissures_id', lazy='dynamic', cascade="all, delete-orphan")
 
 
 class WarframeFissuresMessage(Base):

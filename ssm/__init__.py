@@ -14,7 +14,7 @@ from ssm.modules.create_logger import EasyLogger
 Base = declarative_base()
 
 tmp_logger = getLogger('ssm')
-tmp_logger = EasyLogger(tmp_logger, logger_level=f'DEBUG').create()
+tmp_logger = EasyLogger(tmp_logger, logger_level='DEBUG').create()
 
 if os.path.exists('.env') is True:
 	load_dotenv('.env')
