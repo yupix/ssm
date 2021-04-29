@@ -272,6 +272,7 @@ class Ssm(commands.Bot):
 
 	def __init__(self, command_prefix, intents):
 		super().__init__(command_prefix, help_command=None, description=None, intents=intents)
+		slash = SlashCommand(self, sync_commands=True)
 
 		for cog in INITIAL_EXTENSIONS:
 			try:
@@ -330,7 +331,6 @@ def run(loop_bot, loop_api):
 	asyncio.set_event_loop(loop_bot)
 	intents = discord.Intents.all()
 	bot = Ssm(command_prefix=f'{bot_prefix}', intents=intents)
-	slash_client = SlashCommand(bot, sync_commands=True)
 	if bool(strtobool(use_api)) is True:
 		future = asyncio.gather(bot_run(loop_bot), api_run(loop_api))
 	else:
