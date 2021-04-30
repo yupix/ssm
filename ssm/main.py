@@ -208,7 +208,7 @@ async def bot_eew_loop():
 
 
 @tasks.loop(seconds=60)
-async def loop_bot_task():
+async def bot_warframe_loop():
     from ssm.cogs.warframe import get_warframe_fissures_api, fissure_tier_conversion, warframe_fissures_embed, mission_eta_conversion
 
     async def fissure_check():
@@ -287,15 +287,15 @@ class Ssm(commands.Bot):
 
     async def on_ready(self):
         spinner.stop()
-        loop_bot_task.start()
-        if bool(strtobool(use_api)) is True:
-            api_request.start()
-        if bool(strtobool(use_eew)) is True:
-            await bot_eew_loop.start()
         print('--------------------------------')
         print(self.user.name)
         print(self.user.id)
         print('--------------------------------')
+        await bot_warframe_loop.start()
+        if bool(strtobool(use_api)) is True:
+            api_request.start()
+        if bool(strtobool(use_eew)) is True:
+            await bot_eew_loop.start()
 
     async def on_message(self, ctx):
         if bool(strtobool(show_bot_chat_log)) is False and ctx.author.bot is True:
