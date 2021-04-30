@@ -17,10 +17,9 @@ tmp_logger = getLogger('ssm')
 tmp_logger = EasyLogger(tmp_logger, logger_level='DEBUG').create()
 
 if os.path.exists('.env') is True:
-	load_dotenv('.env')
+    load_dotenv('.env')
 else:
-	tmp_logger.error('.envが存在しません')
-
+    tmp_logger.error('.envが存在しません')
 
 config_ini = configparser.ConfigParser(os.environ)
 config_ini.read('./config.ini', encoding='utf-8')
@@ -39,6 +38,6 @@ session = Session()
 
 spinner = Halo(text='Loading Now',
                spinner={
-	               'interval': 300,
-	               'frames': ['-', '+', 'o', '+', '-']
+                   'interval': 300,
+                   'frames': ['-', '+', 'o', '+', '-']
                })

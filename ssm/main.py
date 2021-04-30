@@ -17,7 +17,7 @@ from googletrans import Translator
 from uvicorn import Config, Server
 from discord_slash import SlashCommand, SlashContext
 
-from ssm import session
+from ssm import session, AutoMigrate
 from ssm.base import db_manager, logger, spinner
 from ssm.modules.voice_generator import create_wave
 from ssm.routers import v1
@@ -316,13 +316,11 @@ class Ssm(commands.Bot):
 
 
 async def bot_run(bot_loop):
-    print('bot')
     asyncio.set_event_loop(bot_loop)
     await bot.start(f'{bot_token}')
 
 
 async def api_run(loop1):
-    print('api')
     asyncio.set_event_loop(loop1)
     config = Config(app=app, host="0.0.0.0", loop=loop1, port=5000, reload=True)
     server = Server(config)
@@ -332,6 +330,7 @@ async def api_run(loop1):
 def run(loop_bot, loop_api):
     global bot
     global slash_client
+    AutoMigrate().generate()
     asyncio.set_event_loop(loop_bot)
     intents = discord.Intents.all()
     bot = Ssm(command_prefix=f'{bot_prefix}', intents=intents)
