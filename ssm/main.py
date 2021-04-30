@@ -17,8 +17,9 @@ from googletrans import Translator
 from uvicorn import Config, Server
 from discord_slash import SlashCommand, SlashContext
 
-from ssm import session, AutoMigrate
+from ssm import session
 from ssm.base import db_manager, logger, spinner
+from ssm.modules.auto_migrate import AutoMigrate
 from ssm.modules.voice_generator import create_wave
 from ssm.routers import v1
 from ssm.sql.models.eew import Eew, EewChannel
